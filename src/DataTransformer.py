@@ -14,7 +14,7 @@ class DataTransformer:
         self.filename = filename
         self.data = None
         self.read_data()
-        self.clean_data()
+        self.data = self.clean_data(self.data)
         self.prepare_data()
 
 
@@ -23,21 +23,23 @@ class DataTransformer:
         self.data = pd.read_csv(self.filename, header=None, names=names,
                                 dtype=dict(zip(names, [int] + [str] * 4 + [int] * 3 + [str] * 2)))
 
-    def clean_data(self, convert_to_numpy=False, allow_draw=True) :
+    def clean_data(self,data, convert_to_numpy=False, allow_draw=True) :
         """Add a column to transform result of the match into int, """
         # result ot int
         conditions = [
-            (self.data['result'] == 'W'),
-            (self.data['result'] == 'L'),
-            (self.data['result'] == 'D')]
+            (data['result'] == 'W'),
+            (data['result'] == 'L'),
+            (data['result'] == 'D')]
         choices = [1, 0, 2]
-        self.data['lwd'] = np.select(conditions, choices)
-        names.append('lwd')
+        data['lwd'] = np.select(conditions, choices)
+        if names[-1] != 'lwd':
+            names.append('lwd')
         # ignore the draw results
         if not allow_draw:
-            self.data = self.data[self.data['result'] != 'D']
+            data = self.data[self.data['result'] != 'D']
         if convert_to_numpy:
-            self.data = self.data.to_numpy()
+            data = self.data.to_numpy()
+        return data
 
     def prepare_data(self, data=None, split_to_test=True):
         if data is None:
@@ -52,7 +54,7 @@ class DataTransformer:
         X = label_encoder.fit_transform(X)
         teams_encoded = label_encoder.fit_transform(teams)
         teams_encoded = pd.DataFrame({'teams':teams, 'label_encoding':teams_encoded})
-        # print(X)
+
         data[:, [3, 4]] = np.reshape(X, (-1, 2))
 
         if split_to_test:

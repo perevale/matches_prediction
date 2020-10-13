@@ -32,11 +32,11 @@ class Dataset(InMemoryDataset):
         dt.read_data()
 
         # process by session_id
-        grouped = dt.data.groupby(['league','year'])
+        grouped = dt.data.groupby(['league'])#,'year'
         for league_year, group in tqdm(grouped):
             # sess_item_id = LabelEncoder().fit_transform(group.item_id)
-
-            group, teams_enc = dt.prepare_data(group)
+            group = dt.clean_data(group)
+            group, teams_enc = dt.prepare_data(data=group, split_to_test=False)
             # group['sess_item_id'] = sess_item_id
             # group = group.reset_index(drop=True)
             # node_features = group.loc[group.league == league_year[0] and group.year == league_year[1], ['home_team','away_team', 'item_id']].item_id.drop_duplicates().values
@@ -47,15 +47,23 @@ class Dataset(InMemoryDataset):
             #
             # edge_index = torch.tensor([source_nodes,
             #                            target_nodes], dtype=torch.long)
-            node_features = torch.LongTensor(random.sample(range(0, 1), len(teams_enc['teams'].values))).unsqueeze(1)
-            edge_index = torch.tensor(list(permutations(list(teams_enc['label_encoding']))), dtype=torch.long)
+            random_list = [x/1000 for x in random.sample(range(0, 1000), len(teams_enc['teams'].values))]
+            # node_features = torch.FloatTensor(random_list).unsqueeze(1)
+            edge_index = torch.tensor(list(permutations(list(teams_enc['label_encoding']),2)), dtype=torch.long)
 
-            x = node_features
+            # x = node_features
+            x = torch.tensor(teams_enc['label_encoding'].values).to(torch.int64)
+            # y = torch.FloatTensor([group.lwd.values])
 
-            # y = torch.FloatTensor([group.label.values[0]])
-
-            data = Data(x=x, edge_index=edge_index.t().contiguous())
+            data = Data(
+                x=x,
+                edge_index=edge_index.t().contiguous(),
+                matches = group.to_numpy()
+                # , y=y
+            )
             data_list.append(data)
 
         data, slices = self.collate(data_list)
+        # self.matches = dt.data
         torch.save((data, slices), self.processed_paths[0])
+

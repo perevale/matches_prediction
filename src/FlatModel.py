@@ -3,9 +3,9 @@ from torch.nn import Embedding, Sequential as Seq, Linear, LeakyReLU, SELU, Soft
 import torch.nn.functional as F
 
 
-class NetModel(torch.nn.Module):
+class FlatModel(torch.nn.Module):
     def __init__(self, n_teams, result, emb_dim=3,  pretrained_weights=None, activation='selu', loss='binary_crossentropy', optimizer='adam'):
-        super(NetModel, self).__init__()
+        super(FlatModel, self).__init__()
         # set hyperparameters for the model
         self.optimizer = optimizer
         self.loss = loss
