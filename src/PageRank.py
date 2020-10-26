@@ -8,9 +8,9 @@ class PageRank(torch.nn.Module):
         super(PageRank, self).__init__()
         self.conv = GCNConv(1, 1, add_self_loops=False) #
 
-    def forward(self, data, home, away, result, training=True):
+    def forward(self, data, home, away, result = None, training=True):
         x = data.x.reshape(-1, 1)
-        if result != 0 and training:
+        if training and result != 0:
             if result == 2:
                 edge_index = torch.tensor([
                                             [home for i in range(len(data.win_lose_network[0][home]['lost']))]+[away],

@@ -196,7 +196,7 @@ def test_pr(data, model, data_type="test"):
             for j in range(d.matches[0].shape[0]):
                 home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], \
                                     d.matches[0].iloc[j]['lwd']
-                outputs = int(model(d, home, away, label, training=False) + 1)
+                outputs = int(model(d, home, away, training=False) + 1)
 
                 predictions.append(outputs)
 
