@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
-
+from src.PRDataset import calculate_win_lose_network
 
 def train_model(data, model, epochs=100):
     data = list(data)
@@ -156,7 +156,11 @@ def train_pr(data, model, epochs=1):
             #                                      num_classes=target_dim)
             for j in range(d.matches[0].shape[0]):
                 # lr_counter += 1
-                home, away, label = d.matches[0][j, 3], d.matches[0][j, 4], d.matches[0][j, 10]#labels[j]
+
+                home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], d.matches[0].iloc[j][ 'lwd']#labels[j]
+                if j > 0:
+                    group = d.matches[0].head(j)
+                    d.win_lose_network = [calculate_win_lose_network(group, d.n_teams)]
                 outputs = model(d, home, away, label)
                 # loss = criterion(outputs, torch.tensor([label]).float())  # label.to(torch.float))
                 # loss.backward()
@@ -176,7 +180,8 @@ def train_pr(data, model, epochs=1):
             print()
 
     print('Finished Training')
-    print(test_pr(data, model, "train"))
+    print('Accuracy of the network on the %s data: %.5f %%' % ("training",
+                                                               test_pr(data, model)))
 
 def test_pr(data, model, data_type="test"):
     correct = 0
@@ -189,13 +194,14 @@ def test_pr(data, model, data_type="test"):
         for d in data:
             # labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0][:, 10]).reshape(-1,1)))
             for j in range(d.matches[0].shape[0]):
-                home, away,label = d.matches[0][j, 3], d.matches[0][j, 4], d.matches[0][j,10]
-                outputs = int(model(d, home, away, label) + 1)
+                home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], \
+                                    d.matches[0].iloc[j]['lwd']
+                outputs = int(model(d, home, away, label, training=False) + 1)
 
                 predictions.append(outputs)
 
                 # _, predicted = torch.max(outputs.data, 1)
-                label = d.matches[0][j, 10]
+                # label = d.matches[0][j, 10]
                 total += 1
                 correct += int(outputs == label)
                 pred_index.append(outputs)

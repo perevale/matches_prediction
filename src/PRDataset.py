@@ -36,35 +36,22 @@ class PRDataset(InMemoryDataset):
         for league_year, group in tqdm(grouped):
             group = dt.clean_data(group)
             group, teams_enc = dt.prepare_data(data=group, split_to_test=False)
-            win_draw = group[(group.lwd == 1) | (group.lwd == 2)]
-            lose = group[(group.lwd == 0)]
-            win_lose_network = [{'won':set(), 'lost':set()} for _ in range(dt.n_teams)]
-            for i in range(dt.n_teams):
-                # won
-                home_team = win_draw[win_draw.home_team == i]
-                win_lose_network[i]['won'].update(set(home_team.away_team))
-                away_team = lose[lose.away_team == i]
-                win_lose_network[i]['won'].update(set(away_team.home_team))
-                # lost
-                home_team = lose[lose.home_team == i]
-                win_lose_network[i]['lost'].update(set(home_team.away_team))
-                away_team = win_draw[win_draw.away_team == i]
-                win_lose_network[i]['lost'].update(set(away_team.home_team))
-
+            win_lose_network = [{'won': set(), 'lost': set()} for _ in range(dt.n_teams)]
 
             # random_list = [x/1000 for x in random.sample(range(0, 1000), len(teams_enc['teams'].values))]
             # node_features = torch.FloatTensor(random_list).unsqueeze(1)
-            edge_index = torch.tensor(list(permutations(list(teams_enc['label_encoding']),2)), dtype=torch.long)
+            # edge_index = torch.tensor(list(permutations(list(teams_enc['label_encoding']),2)), dtype=torch.long)
 
             # x = node_features
-            x = torch.tensor(teams_enc['label_encoding'].values).to(torch.int64)
+            # x = torch.tensor(teams_enc['label_encoding'].values).to(torch.int64)
             x = torch.ones(dt.n_teams).reshape(-1, 1)
             # y = torch.FloatTensor([group.lwd.values])
 
             data = Data(
                 x=x,
-                edge_index=edge_index.t().contiguous(),
-                matches = group.to_numpy(),
+                # edge_index=edge_index.t().contiguous(),
+                matches = group,
+                n_teams = dt.n_teams,
                 win_lose_network = win_lose_network
                 # , y=y
             )
@@ -74,3 +61,20 @@ class PRDataset(InMemoryDataset):
         # self.matches = dt.data
         torch.save((data, slices), self.processed_paths[0])
 
+
+def calculate_win_lose_network(group, n_teams):
+    win_draw = group[(group.lwd == 1) | (group.lwd == 2)]
+    lose = group[(group.lwd == 0)]
+    win_lose_network = [{'won': set(), 'lost': set()} for _ in range(n_teams)]
+    for i in range(n_teams):
+        # won
+        home_team = win_draw[win_draw.home_team == i]
+        win_lose_network[i]['won'].update(set(home_team.away_team))
+        away_team = lose[lose.away_team == i]
+        win_lose_network[i]['won'].update(set(away_team.home_team))
+        # lost
+        home_team = lose[lose.home_team == i]
+        win_lose_network[i]['lost'].update(set(home_team.away_team))
+        away_team = win_draw[win_draw.away_team == i]
+        win_lose_network[i]['lost'].update(set(away_team.home_team))
+    return win_lose_network
