@@ -28,9 +28,9 @@ class DataTransformer:
         # result ot int
         conditions = [
             (data['result'] == 'W'),
-            (data['result'] == 'L'),
-            (data['result'] == 'D')]
-        choices = [1, 0, 2]
+            (data['result'] == 'D'),
+            (data['result'] == 'L')]
+        choices = [2,1,0]
         data['lwd'] = np.select(conditions, choices)
         if names[-1] != 'lwd':
             names.append('lwd')
@@ -45,7 +45,7 @@ class DataTransformer:
         if data is None:
             data = self.data
         data = data.to_numpy()
-        teams = np.unique(data[:, 3:4])
+        teams = np.unique(data[:, [3,4]])
         self.n_teams = len(teams)
         X = data[:, [3, 4]]
 
@@ -93,9 +93,10 @@ class DataTransformer:
         # print some metadata
         if message is not None:
             print(message)
-        won = len(data[data['result'] == "W"])
-        lost = len(data[data['result'] == "L"])
-        draw = len(data[data['result'] == "D"])
-        total = len(data)
+        won = data[data['result'] == "W"].shape[0]
+        lost = data[data['result'] == "L"].shape[0]
+        draw = data[data['result'] == "D"].shape[0]
+        total = data.shape[0]
         # print("Won:", won, won / total * 100, ", Lost:", lost, lost / total * 100)
         print("Won: {}%, Lost: {}%, Draw: {}%".format(won*100 / total, lost*100 / total, draw*100 / total))
+        print(total)

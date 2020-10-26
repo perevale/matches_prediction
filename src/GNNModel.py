@@ -1,18 +1,19 @@
-embed_dim = 3
+embed_dim = 2
+target_dim = 3
 import torch
 from torch_geometric.nn import GraphConv, TopKPooling, GatedGraphConv
 from torch_geometric.nn import global_mean_pool as gap, global_max_pool as gmp
 import torch.nn.functional as F
 import numpy as np
 from src.SAGEConv import SAGEConv
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GCNConv, ClusterGCNConv
 from torch.nn import LogSoftmax
 
 
 class GNNModel(torch.nn.Module):
     def __init__(self, num_teams):
         super(GNNModel, self).__init__()
-        self.conv1 = GCNConv(embed_dim, 16)
+        self.conv1 = ClusterGCNConv(embed_dim, 3)
         self.conv2 = GCNConv(16, 3)
 
         # self.conv1 = SAGEConv(embed_dim, 128)
@@ -22,9 +23,9 @@ class GNNModel(torch.nn.Module):
         self.conv3 = SAGEConv(128, 128)
         self.pool3 = TopKPooling(128, ratio=0.8)
         self.item_embedding = torch.nn.Embedding(num_embeddings=num_teams, embedding_dim=embed_dim)
-        self.lin1 = torch.nn.Linear(6, 16)
+        self.lin1 = torch.nn.Linear(6, 6)
         self.lin2 = torch.nn.Linear(16, 6)
-        self.lin3 = torch.nn.Linear(6, 3)
+        self.lin3 = torch.nn.Linear(6, target_dim)
         self.bn1 = torch.nn.BatchNorm1d(128)
         self.bn2 = torch.nn.BatchNorm1d(64)
         self.act1 = torch.nn.ReLU()
@@ -32,12 +33,12 @@ class GNNModel(torch.nn.Module):
         self.out = LogSoftmax(dim=0)
 
     def forward(self, data, home, away):
-        x, edge_index, batch = data.x, data.edge_index, data.batch
+        x, edge_index = data.x, data.edge_index
         x = self.item_embedding(x)
-        x = x.squeeze(1)
+        # x = x.squeeze(1)
 
         x = F.leaky_relu(self.conv1(x, edge_index))
-        x = F.leaky_relu(self.conv2(x, edge_index))
+        # x = F.leaky_relu(self.conv2(x, edge_index))
 
         x = torch.cat([x[home],x[away]], dim=-1)
 
@@ -71,8 +72,9 @@ class GNNModel(torch.nn.Module):
         # # node_indeces = np.intersection1(ei_home, ei_away)
         #
         x = F.leaky_relu(self.lin1(x))
-        x = F.leaky_relu(self.lin2(x))
+        # x = F.leaky_relu(self.lin2(x))
         x = F.leaky_relu(self.lin3(x))
         # .squeeze(1)
-        # x = self.out(x)
-        return x.reshape(-1,3)
+        x = self.out(x)
+        # x = F.softmax(x, dim=0)
+        return x.reshape(-1, target_dim)
