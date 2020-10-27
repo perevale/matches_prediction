@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
-from src.PRDataset import calculate_win_lose_network
+from src.PRDataset import calculate_win_lose_network, update_win_lose_network
 
 def train_model(data, model, epochs=100):
     data = list(data)
@@ -160,7 +160,8 @@ def train_pr(data, model, epochs=1):
                 home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], d.matches[0].iloc[j][ 'lwd']#labels[j]
                 if j > 0:
                     group = d.matches[0].head(j)
-                    d.win_lose_network = [calculate_win_lose_network(group, d.n_teams)]
+                    # d.win_lose_network = [calculate_win_lose_network(group, d.n_teams)]
+                    update_win_lose_network(d.win_lose_network[0], d.matches[0].iloc[j - 1])
                 outputs = model(d, home, away, label)
                 # loss = criterion(outputs, torch.tensor([label]).float())  # label.to(torch.float))
                 # loss.backward()

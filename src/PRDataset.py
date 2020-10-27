@@ -63,7 +63,7 @@ class PRDataset(InMemoryDataset):
 
 
 def calculate_win_lose_network(group, n_teams):
-    win_draw = group[(group.lwd == 1) | (group.lwd == 2)]
+    win_draw = group[(group.lwd == 2)] # (group.lwd == 1) |
     lose = group[(group.lwd == 0)]
     win_lose_network = [{'won': set(), 'lost': set()} for _ in range(n_teams)]
     for i in range(n_teams):
@@ -78,3 +78,15 @@ def calculate_win_lose_network(group, n_teams):
         away_team = win_draw[win_draw.away_team == i]
         win_lose_network[i]['lost'].update(set(away_team.home_team))
     return win_lose_network
+
+
+def update_win_lose_network(win_lose_network, record):
+    if record.lwd == 2: # record.lwd == 1 or
+        win_lose_network[record.home_team]['won'].add(record.away_team)
+        win_lose_network[record.away_team]['lost'].add(record.home_team)
+    elif record.lwd == 0:
+        win_lose_network[record.home_team]['lost'].add(record.away_team)
+        win_lose_network[record.away_team]['won'].add(record.home_team)
+    else:
+        pass
+    # return win_lose_network
