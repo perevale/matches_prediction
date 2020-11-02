@@ -1,6 +1,7 @@
 import torch
 from torch_geometric.nn import GCNConv
 from torch import sigmoid as act, sign
+import numpy as np
 
 
 class PageRank(torch.nn.Module):
@@ -8,24 +9,15 @@ class PageRank(torch.nn.Module):
         super(PageRank, self).__init__()
         self.conv = GCNConv(1, 1, add_self_loops=False) #
 
-    def forward(self, data, home, away, result = None, training=True):
-        x = data.x.reshape(-1, 1)
-        if training and result != 0:
-            if result == 2:
-                edge_index = torch.tensor([
-                                            [home for i in range(len(data.win_lose_network[0][home]['lost']))]+[away],
-                                           list(data.win_lose_network[0][home]['lost'])+[home]
-                                           # [away],[home]
-                                           ])
-            elif result == 1:
-                edge_index = torch.tensor([[away for i in range(len(data.win_lose_network[0][away]['lost']))]+[home],
-                                            list(data.win_lose_network[0][away]['lost'])+[away]
-                                           ])
-            cache = [edge_index, torch.ones(len(edge_index[0]))]
+    def forward(self, data, home, away, training=True):
+        x, edge_index = data.x.reshape(-1, 1), data.edge_index
+        if training:
+            edge_weight = torch.ones(len(edge_index[0]))
+            cache = [edge_index, edge_weight]
             self.conv._cached_edge_index = cache
             self.conv.weight.data = torch.ones(1).view(1,1)
             x = self.conv(x, edge_index)
-            data.x *= 0.8
+            data.x *= data.node_weight
             data.x += x
             data.x = act(data.x)
         output = data.x[home] - data.x[away]

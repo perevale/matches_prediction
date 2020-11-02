@@ -4,17 +4,15 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
-from src.PRDataset import calculate_win_lose_network, update_win_lose_network
+from src.PRDataset import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight
 
 def train_model(data, model, epochs=100):
     data = list(data)
-    lr_counter = 0
-    c = 20
 
-    # criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss()
     criterion = nn.PoissonNLLLoss()
     # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    optimizer = optim.Adam(model.parameters(), lr= (c / (c - 1 + lr_counter)), weight_decay=0.01)
+    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
     for epoch in range(epochs):
 
         running_loss = 0.0
@@ -27,26 +25,23 @@ def train_model(data, model, epochs=100):
 
             # forward + backward + optimize
             # outputs = model(home, away)
-            labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0][:, 10]).reshape(-1,1)), num_classes=target_dim)
+
+            labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0]['lwd']).reshape(-1,1)), num_classes=d.n_teams[0])
             for j in range(d.matches[0].shape[0]):
-                lr_counter+=1
-                home, away, label = d.matches[0][j, 3], d.matches[0][j, 4], labels[j]
+                home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], labels[j]
                 outputs = model(d, home, away)
                 loss = criterion(outputs, label.to(torch.float))
                 loss.backward()
                 optimizer.step()
 
-                optimizer.lr = c / (c - 1 + lr_counter)
                 # print statistics
                 running_loss += loss.item()
                 if j % 100 == 99:  # print every 100 mini-batches
                     print('[%d, %5d] loss: %.3f '
                           # 'accuracy: %.3f'
-                            'optimizer lr: %.5f'
                           %
                           (epoch + 1, j + 1, running_loss / 100
                            # , test_model(data, model)
-                            , optimizer.lr
                            ))
                     running_loss = 0.0
 
@@ -159,32 +154,17 @@ def train_pr(data, model, epochs=1):
 
                 home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], d.matches[0].iloc[j][ 'lwd']#labels[j]
                 if j > 0:
-                    group = d.matches[0].head(j)
-                    # d.win_lose_network = [calculate_win_lose_network(group, d.n_teams)]
                     update_win_lose_network(d.win_lose_network[0], d.matches[0].iloc[j - 1])
-                outputs = model(d, home, away, label)
-                # loss = criterion(outputs, torch.tensor([label]).float())  # label.to(torch.float))
-                # loss.backward()
-                # optimizer.step()
-
-                # optimizer.lr = c / (c - 1 + lr_counter)
-                # print statistics
-                # running_loss += loss.item()
-                if j % 100 == 99:  # print every 100 mini-batches
-                    print('[%d, %5d] loss: %.3f '
-                          # 'accuracy: %.3f'
-                          %
-                          (epoch + 1, j + 1, running_loss / 100
-                           # , test_model(data, model)
-                           ))
-                    # running_loss = 0.0
-            print()
+                create_edge_index(d, home, away, label)
+                calculate_node_weight(d, j, d.matches[0].shape[0])
+                model(d, home, away)
+                update_node_time(d, j)
 
     print('Finished Training')
     print('Accuracy of the network on the %s data: %.5f %%' % ("training",
                                                                test_pr(data, model)))
 
-def test_pr(data, model, data_type="test"):
+def test_pr(data, model, data_type=None):
     correct = 0
     total = 0
     predictions = []
@@ -207,6 +187,7 @@ def test_pr(data, model, data_type="test"):
                 correct += int(outputs == label)
                 pred_index.append(outputs)
 
-    # print('Accuracy of the network on the %s data: %.5f %%' % (data_type,
-    #                                                            100 * correct / total))
+    if data_type is not None:
+        print('Accuracy of the network on the %s data: %.5f %%' % (data_type,
+                                                               100 * correct / total))
     return 100 * correct / total

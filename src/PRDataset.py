@@ -6,7 +6,7 @@ from torch_geometric.data import Data
 from src.DataTransformer import DataTransformer
 from itertools import permutations
 import random
-
+import numpy as np
 
 class PRDataset(InMemoryDataset):
     def __init__(self, root, filename, transform=None, pre_transform=None):
@@ -47,12 +47,18 @@ class PRDataset(InMemoryDataset):
             x = torch.ones(dt.n_teams).reshape(-1, 1)
             # y = torch.FloatTensor([group.lwd.values])
 
+            # node_time = np.empty((dt.n_teams, dt.n_teams))
+            # node_time[:] = None
+            node_time = np.zeros(dt.n_teams)
+
             data = Data(
                 x=x,
                 # edge_index=edge_index.t().contiguous(),
                 matches = group,
                 n_teams = dt.n_teams,
-                win_lose_network = win_lose_network
+                win_lose_network = win_lose_network,
+                node_time = node_time,
+                node_weight = None
                 # , y=y
             )
             data_list.append(data)
@@ -90,3 +96,26 @@ def update_win_lose_network(win_lose_network, record):
     else:
         pass
     # return win_lose_network
+
+
+def create_edge_index(data, home, away, result):
+    if result == 2:
+        data.edge_index = torch.tensor([
+            [home for i in range(len(data.win_lose_network[0][home]['lost']))] + [away],
+            list(data.win_lose_network[0][home]['lost']) + [home]
+        ])
+    elif result == 1:
+        data.edge_index = torch.tensor([[away for i in range(len(data.win_lose_network[0][away]['lost']))] + [home],
+                                   list(data.win_lose_network[0][away]['lost']) + [away]
+                                   ])
+
+
+def update_node_time(data, curr_time):
+    indeces = data.edge_index[:][1].numpy()
+    data.node_time[0][indeces] = curr_time
+
+
+def calculate_node_weight(data, curr_time, N):
+    # if data.edge_time[home,away] is not None and data.edge_time[away] is not None:
+
+    data.node_weight = torch.tensor(1 - ((curr_time - data.node_time[0]) / N).astype(np.float32)).reshape(-1,1)

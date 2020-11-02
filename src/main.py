@@ -42,13 +42,17 @@ if __name__ == '__main__':
     # # evaluate(train_loader, model)
 
     #-----------Flat model---------------------
+    # dataset = PRDataset(root='../', filename=filename)
+    # dataset.process()
+    # batch_size = 1
+    # train_loader = DataLoader(dataset, batch_size=batch_size)
     # model = FlatModel(dt.n_teams, 3)
-    # train_model(zip(home, away, label), model )
+    # train_model(train_loader, model)
     # PATH = './net.pth'
     # torch.save(model.state_dict(), PATH)
     # # net = Net()
     # # net.load_state_dict(torch.load(PATH))
-    # home, away, label = dt.get_test_data()
-    # test_model(zip(home, away, label), model)
+    # # home, away, label = dt.get_test_data()
+    # # test_model(zip(home, away, label), model)
     # # correct_by_class(zip(home, away, label), model)
     # pass
