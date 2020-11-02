@@ -17,7 +17,6 @@ class DataTransformer:
         self.data = self.clean_data(self.data)
         self.prepare_data()
 
-
     def read_data(self):
         """Read the data from csv with correct data types."""
         self.data = pd.read_csv(self.filename, header=None, names=names,
@@ -79,17 +78,17 @@ class DataTransformer:
         return home, away, label
 
     def get_train_data(self):
-        self.print_metadata(self.data_train,"Train data")
+        self.print_metadata(self.data_train, "Information on Train data: ")
         home, away, label = self.to_tensor(self.data_train)
         return home, away, label
 
     def get_test_data(self):
-        self.print_metadata(self.data_test,"Test data")
+        self.print_metadata(self.data_test, "Information on Test data: ")
         home, away, label = self.to_tensor(self.data_test)
         return home, away, label
 
-
-    def print_metadata(self, data, message=None):
+    @staticmethod
+    def print_metadata(data, message=None):
         # print some metadata
         if message is not None:
             print(message)
@@ -99,4 +98,4 @@ class DataTransformer:
         total = data.shape[0]
         # print("Won:", won, won / total * 100, ", Lost:", lost, lost / total * 100)
         print("Won: {}%, Lost: {}%, Draw: {}%".format(won*100 / total, lost*100 / total, draw*100 / total))
-        print(total)
+        print("The number of data points in the data set is:", total)

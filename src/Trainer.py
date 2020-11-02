@@ -191,3 +191,68 @@ def test_pr(data, model, data_type=None):
         print('Accuracy of the network on the %s data: %.5f %%' % (data_type,
                                                                100 * correct / total))
     return 100 * correct / total
+
+
+def train_flat_model(data, model, epochs=100):
+    data = list(data)
+
+    criterion = nn.CrossEntropyLoss()
+    # criterion = nn.PoissonNLLLoss()
+    # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
+    for epoch in range(epochs):
+
+        running_loss = 0.0
+        for i, d in enumerate(data):
+            # get the inputs; data is a list of [inputs, labels]
+            # home, away, labels = d
+
+            # zero the parameter gradients
+            optimizer.zero_grad()
+
+            # forward + backward + optimize
+            # outputs = model(home, away)
+
+            # labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0]['lwd']).reshape(-1, 1)),
+            #                                      num_classes=d.n_teams[0])
+
+            home, away, label = d# labels[j]
+            outputs = model(home, away)
+            loss = criterion(outputs, label)
+            loss.backward()
+            optimizer.step()
+
+            # print statistics
+            running_loss += loss.item()
+            if i % 100 == 99:  # print every 100 mini-batches
+                print('[%d, %5d] loss: %.3f '
+                      # 'accuracy: %.3f'
+                      %
+                      (epoch + 1, i + 1, running_loss / 100
+                       # , test_model(data, model)
+                       ))
+                running_loss = 0.0
+
+    print('Finished Training')
+    print('Accuracy of the network on the %s data: %.5f %%' % ("training",
+                                                               test_flat_model(data, model)))
+
+
+def test_flat_model(data, model, data_type=None):
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for d in data:
+            home, away, labels = d
+            outputs = model(home, away)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    if data_type is not None:
+        print('Accuracy of the network on the %s data: %.5f %%' % (data_type,
+                                                                   100 * correct / total))
+
+
+    return 100 * correct / total

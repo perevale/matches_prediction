@@ -4,11 +4,9 @@ import torch.nn.functional as F
 
 
 class FlatModel(torch.nn.Module):
-    def __init__(self, n_teams, result, emb_dim=3,  pretrained_weights=None, activation='selu', loss='binary_crossentropy', optimizer='adam'):
+    def __init__(self, n_teams, result, emb_dim=3,  pretrained_weights=None):
         super(FlatModel, self).__init__()
         # set hyperparameters for the model
-        self.optimizer = optimizer
-        self.loss = loss
         self.n_teams = n_teams
         self.out_dim = result
         # set the layers to be used in the model
