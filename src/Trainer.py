@@ -4,15 +4,17 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
-from src.PRDataset import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight
+from src.utils import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight, update_edge_time, calculate_edge_weight
 
-def train_model(data, model, epochs=100):
+
+def train_gnn_model(data, model, epochs=2000):
     data = list(data)
 
     criterion = nn.CrossEntropyLoss()
     criterion = nn.PoissonNLLLoss()
     # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     for epoch in range(epochs):
 
         running_loss = 0.0
@@ -26,10 +28,20 @@ def train_model(data, model, epochs=100):
             # forward + backward + optimize
             # outputs = model(home, away)
 
-            labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0]['lwd']).reshape(-1,1)), num_classes=d.n_teams[0])
+            labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0]['lwd'])).reshape(-1,1), num_classes=len(np.unique(np.int64(d.matches[0]['lwd']))))
             for j in range(d.matches[0].shape[0]):
-                home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], labels[j]
+                home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], \
+                                    labels[j]
+                                    # d.matches[0].iloc[j]['lwd']
+                if j > 0:
+                    update_win_lose_network(d.win_lose_network[0], d.matches[0].iloc[j - 1])
+                create_edge_index(d, home, away, d.matches[0].iloc[j]['lwd'])
+                calculate_edge_weight(d, curr_time=j)
+                # calculate_node_weight(d, j, d.matches[0].shape[0])
                 outputs = model(d, home, away)
+                # update_node_time(d, j)
+                update_edge_time(d, home, away, curr_time=j)
+
                 loss = criterion(outputs, label.to(torch.float))
                 loss.backward()
                 optimizer.step()
@@ -44,12 +56,12 @@ def train_model(data, model, epochs=100):
                            # , test_model(data, model)
                            ))
                     running_loss = 0.0
-
+        # TODO: Add validation data
     print('Finished Training')
-    print(test_model(data, model, "train"))
+    print(test_gnn_model(data, model, "train"))
 
 
-def test_model(data, model, data_type="test"):
+def test_gnn_model(data, model, data_type="test"):
     correct = 0
     total = 0
     predictions = []
@@ -57,15 +69,18 @@ def test_model(data, model, data_type="test"):
 
     with torch.no_grad():
         for d in data:
-            labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0][:, 10]).reshape(-1,1)))
+            labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0]['lwd'])).reshape(-1, 1),
+                                                 num_classes=len(np.unique(np.int64(d.matches[0]['lwd']))))
+
             for j in range(d.matches[0].shape[0]):
-                home, away,label = d.matches[0][j, 3], d.matches[0][j, 4], labels[j]
+                home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], \
+                                    labels[j]
                 outputs = model(d, home, away)
 
                 predictions.append(outputs)
 
                 _, predicted = torch.max(outputs.data, 1)
-                label = d.matches[0][j, 10]
+                label = d.matches[0].iloc[j]['lwd']
                 total += 1
                 correct += (predicted == label).sum().item()
                 pred_index.append(predicted)
@@ -121,7 +136,6 @@ def evaluate(data, model):
     # labels = np.hstack(labels)
 
     return roc_auc_score(labels, y_pred, multi_class='ovo')
-
 
 
 def train_pr(data, model, epochs=1):

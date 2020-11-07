@@ -47,8 +47,9 @@ class PRDataset(InMemoryDataset):
             x = torch.ones(dt.n_teams).reshape(-1, 1)
             # y = torch.FloatTensor([group.lwd.values])
 
-            # node_time = np.empty((dt.n_teams, dt.n_teams))
-            # node_time[:] = None
+            edge_time = np.empty((dt.n_teams, dt.n_teams))
+            edge_time[:] = None
+
             node_time = np.zeros(dt.n_teams)
 
             data = Data(
@@ -58,7 +59,9 @@ class PRDataset(InMemoryDataset):
                 n_teams = dt.n_teams,
                 win_lose_network = win_lose_network,
                 node_time = node_time,
-                node_weight = None
+                node_weight = None,
+                edge_time = edge_time,
+                n_datapoints = group.shape[0]
                 # , y=y
             )
             data_list.append(data)
@@ -66,56 +69,3 @@ class PRDataset(InMemoryDataset):
         data, slices = self.collate(data_list)
         # self.matches = dt.data
         torch.save((data, slices), self.processed_paths[0])
-
-
-def calculate_win_lose_network(group, n_teams):
-    win_draw = group[(group.lwd == 2)] # (group.lwd == 1) |
-    lose = group[(group.lwd == 0)]
-    win_lose_network = [{'won': set(), 'lost': set()} for _ in range(n_teams)]
-    for i in range(n_teams):
-        # won
-        home_team = win_draw[win_draw.home_team == i]
-        win_lose_network[i]['won'].update(set(home_team.away_team))
-        away_team = lose[lose.away_team == i]
-        win_lose_network[i]['won'].update(set(away_team.home_team))
-        # lost
-        home_team = lose[lose.home_team == i]
-        win_lose_network[i]['lost'].update(set(home_team.away_team))
-        away_team = win_draw[win_draw.away_team == i]
-        win_lose_network[i]['lost'].update(set(away_team.home_team))
-    return win_lose_network
-
-
-def update_win_lose_network(win_lose_network, record):
-    if record.lwd == 2: # record.lwd == 1 or
-        win_lose_network[record.home_team]['won'].add(record.away_team)
-        win_lose_network[record.away_team]['lost'].add(record.home_team)
-    elif record.lwd == 0:
-        win_lose_network[record.home_team]['lost'].add(record.away_team)
-        win_lose_network[record.away_team]['won'].add(record.home_team)
-    else:
-        pass
-    # return win_lose_network
-
-
-def create_edge_index(data, home, away, result):
-    if result == 2:
-        data.edge_index = torch.tensor([
-            [home for i in range(len(data.win_lose_network[0][home]['lost']))] + [away],
-            list(data.win_lose_network[0][home]['lost']) + [home]
-        ])
-    elif result == 1:
-        data.edge_index = torch.tensor([[away for i in range(len(data.win_lose_network[0][away]['lost']))] + [home],
-                                   list(data.win_lose_network[0][away]['lost']) + [away]
-                                   ])
-
-
-def update_node_time(data, curr_time):
-    indeces = data.edge_index[:][1].numpy()
-    data.node_time[0][indeces] = curr_time
-
-
-def calculate_node_weight(data, curr_time, N):
-    # if data.edge_time[home,away] is not None and data.edge_time[away] is not None:
-
-    data.node_weight = torch.tensor(1 - ((curr_time - data.node_time[0]) / N).astype(np.float32)).reshape(-1,1)

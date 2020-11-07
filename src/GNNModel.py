@@ -1,4 +1,4 @@
-embed_dim = 2
+embed_dim = 3
 target_dim = 3
 import torch
 from torch_geometric.nn import GraphConv, TopKPooling, GatedGraphConv
@@ -9,12 +9,14 @@ from src.SAGEConv import SAGEConv
 from torch_geometric.nn import GCNConv, ClusterGCNConv
 from torch.nn import LogSoftmax
 
+from src.utils import calculate_edge_weight, get_neighbour_edge_index
+
 
 class GNNModel(torch.nn.Module):
     def __init__(self, num_teams):
         super(GNNModel, self).__init__()
         self.conv1 = ClusterGCNConv(embed_dim, 3)
-        self.conv2 = GCNConv(16, 3)
+        self.conv1 = GCNConv(embed_dim, 3, add_self_loops=False)
 
         # self.conv1 = SAGEConv(embed_dim, 128)
         self.pool1 = TopKPooling(128, ratio=0.8)
@@ -33,14 +35,23 @@ class GNNModel(torch.nn.Module):
         self.out = LogSoftmax(dim=0)
 
     def forward(self, data, home, away):
-        x, edge_index = data.x, data.edge_index
-        x = self.item_embedding(x)
+        edge_index, edge_weight = data.edge_index, data.edge_weight
+        x = torch.tensor(list(range(data.n_teams[0])))
+        x = self.item_embedding(x).reshape(-1,embed_dim)
         # x = x.squeeze(1)
 
-        x = F.leaky_relu(self.conv1(x, edge_index))
+        # cache = [edge_index, edge_weight]
+        # self.conv1._cached_edge_index = cache
+
+
+
+        # x = F.leaky_relu(self.conv1(x, edge_index))
+        x = F.leaky_relu(self.conv1(x, edge_index, edge_weight))
+
         # x = F.leaky_relu(self.conv2(x, edge_index))
 
         x = torch.cat([x[home],x[away]], dim=-1)
+
 
 
 
