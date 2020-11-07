@@ -47,7 +47,7 @@ class GNNModel(torch.nn.Module):
 
         # x = F.leaky_relu(self.conv1(x, edge_index))
         x = F.leaky_relu(self.conv1(x, edge_index, edge_weight))
-
+        get_neighbour_edge_index(data)
         # x = F.leaky_relu(self.conv2(x, edge_index))
 
         x = torch.cat([x[home],x[away]], dim=-1)

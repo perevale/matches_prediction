@@ -7,7 +7,7 @@ from sklearn.metrics import roc_auc_score
 from src.utils import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight, update_edge_time, calculate_edge_weight
 
 
-def train_gnn_model(data, model, epochs=2000):
+def train_gnn_model(data, model, epochs=100):
     data = list(data)
 
     criterion = nn.CrossEntropyLoss()

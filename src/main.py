@@ -19,7 +19,7 @@ if __name__ == '__main__':
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
     filename = "../data/mini_data.csv"
-    filename = "../data/GER1_all.csv"
+    # filename = "../data/GER1_all.csv"
     dt = DataTransformer(filename)
     # home, away, label = dt.get_train_data()
     dt.print_metadata(dt.data, "Information on the whole dataset: ")

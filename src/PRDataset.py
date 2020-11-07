@@ -36,7 +36,8 @@ class PRDataset(InMemoryDataset):
         for league_year, group in tqdm(grouped):
             group = dt.clean_data(group)
             group, teams_enc = dt.prepare_data(data=group, split_to_test=False)
-            win_lose_network = [{'won': set(), 'lost': set()} for _ in range(dt.n_teams)]
+            # win_lose_network = [{'won': set(), 'lost': set()} for _ in range(dt.n_teams)]
+            win_lose_network = np.zeros((dt.n_teams, 2, dt.n_teams))
 
             # random_list = [x/1000 for x in random.sample(range(0, 1000), len(teams_enc['teams'].values))]
             # node_features = torch.FloatTensor(random_list).unsqueeze(1)
