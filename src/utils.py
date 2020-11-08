@@ -56,8 +56,8 @@ def get_neighbour_edge_index(data, self_loops=False):
     # edge_index = torch.tensor([new_from_nodes, new_from_nodes])
 
     # --------------------------------
-    new_to_nodes = np.where(data.win_lose_network[0][to_nodes, 0] == 1)
-    rep_times = np.sum(data.win_lose_network[0][to_nodes, 0], axis = 1)
+    new_to_nodes = np.where(data.win_lose_network[0][to_nodes, 0] == 1)[1]
+    rep_times = np.sum(data.win_lose_network[0][to_nodes, 0], axis = 1).astype(int)
     # if not self_loops:
     #     new_neighbours = ma.masked_array(new_neighbours, mask=)
     new_from_nodes = np.repeat(to_nodes, rep_times)
@@ -78,11 +78,14 @@ def update_edge_time(data, home, away, curr_time):
     data.edge_time[0][home][away] = curr_time
 
 
-def calculate_edge_weight(data, curr_time):
+def calculate_edge_weight(data, curr_time, time_weighting="linear"):
     from_nodes = data.edge_index[0].numpy()
     to_nodes = data.edge_index[1].numpy()
 
     prev_edge_time = data.edge_time[0][from_nodes, to_nodes]
     prev_edge_time[np.isnan(prev_edge_time)] = curr_time
 
-    data.edge_weight = (1 - ((curr_time - prev_edge_time) / data.n_datapoints[0])).reshape(-1, 1).float()
+    if time_weighting == "linear":
+        data.edge_weight = (1 - ((curr_time - prev_edge_time) / data.n_datapoints[0])).reshape(-1,).float()
+    elif time_weighting == "exponential":
+        data.edge_weight = torch.tensor(np.exp(curr_time - prev_edge_time)).reshape(-1,)
