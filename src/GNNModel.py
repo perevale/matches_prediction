@@ -17,6 +17,7 @@ class GNNModel(torch.nn.Module):
         super(GNNModel, self).__init__()
         self.conv1 = ClusterGCNConv(embed_dim, 3)
         self.conv1 = GCNConv(embed_dim, 2)
+        self.conv2 = GCNConv(2, 2)
 
         # self.conv1 = SAGEConv(embed_dim, 128)
         self.pool1 = TopKPooling(128, ratio=0.8)
@@ -43,8 +44,12 @@ class GNNModel(torch.nn.Module):
         # x = F.leaky_relu(self.conv1(x, edge_index))
         x = self.conv1(x, edge_index, edge_weight)
         x = F.leaky_relu(x)
-        get_neighbour_edge_index(data)
-        # x = F.leaky_relu(self.conv2(x, edge_index))
+
+
+        data.edge_index = get_neighbour_edge_index(data)
+        if len(data.edge_index) > 0:
+            edge_weight = calculate_edge_weight(data)
+            x = F.leaky_relu(self.conv2(x, data.edge_index, edge_weight))
 
 
 

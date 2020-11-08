@@ -1,12 +1,11 @@
+import numpy as np
 import torch
+from torch_geometric.data import Data
 from torch_geometric.data import InMemoryDataset
 from tqdm import tqdm
-from sklearn.preprocessing import LabelEncoder
-from torch_geometric.data import Data
+
 from src.DataTransformer import DataTransformer
-from itertools import permutations
-import random
-import numpy as np
+
 
 class PRDataset(InMemoryDataset):
     def __init__(self, root, filename, transform=None, pre_transform=None):
@@ -29,15 +28,16 @@ class PRDataset(InMemoryDataset):
         data_list = []
 
         dt = DataTransformer(self.filename)
-        dt.read_data()
+        # dt.read_data()
 
         # process by session_id
-        grouped = dt.data.groupby(['league'])#,'year'
+        grouped = dt.data.groupby(['league'])  # ,'year'
         for league_year, group in tqdm(grouped):
-            group = dt.clean_data(group)
-            group, teams_enc = dt.prepare_data(data=group, split_to_test=False)
+            # group = dt.clean_data(group)
+            data_train, data_val, data_test, teams_enc = dt.prepare_data(data=group)
+            n_teams = len(teams_enc['teams'].values)
             # win_lose_network = [{'won': set(), 'lost': set()} for _ in range(dt.n_teams)]
-            win_lose_network = np.zeros((dt.n_teams, 2, dt.n_teams))
+            win_lose_network = np.zeros((n_teams, 2, n_teams))
 
             # random_list = [x/1000 for x in random.sample(range(0, 1000), len(teams_enc['teams'].values))]
             # node_features = torch.FloatTensor(random_list).unsqueeze(1)
@@ -45,28 +45,31 @@ class PRDataset(InMemoryDataset):
 
             # x = node_features
             # x = torch.tensor(teams_enc['label_encoding'].values).to(torch.int64)
-            x = torch.ones(dt.n_teams).reshape(-1, 1)
+            x = torch.ones(n_teams).reshape(-1, 1)
             # y = torch.FloatTensor([group.lwd.values])
 
-            edge_time = np.empty((dt.n_teams, dt.n_teams))
+            edge_time = np.empty((n_teams, n_teams))
             edge_time[:] = None
 
-            node_time = np.zeros(dt.n_teams)
+            node_time = np.zeros(n_teams)
 
             data = Data(
                 x=x,
                 # edge_index=edge_index.t().contiguous(),
-                matches = group,
-                n_teams = dt.n_teams,
-                win_lose_network = win_lose_network,
-                node_time = node_time,
-                node_weight = None,
-                edge_time = edge_time,
-                n_datapoints = group.shape[0]
-                # , y=y
+                matches=data_train,
+                n_teams=n_teams,
+                win_lose_network=win_lose_network,
+                node_time=node_time,
+                node_weight=None,
+                edge_time=edge_time,
+                data_val=data_val,
+                data_test=data_test,
+                curr_time=0,
+                N=dt.N
             )
             data_list.append(data)
 
         data, slices = self.collate(data_list)
+        return data
         # self.matches = dt.data
-        torch.save((data, slices), self.processed_paths[0])
+        # torch.save((data, slices), self.processed_paths[0])

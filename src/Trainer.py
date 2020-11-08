@@ -4,86 +4,95 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
-from src.utils import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight, update_edge_time, calculate_edge_weight
+from src.utils import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight, update_edge_time, calculate_edge_weight, plot_accuracy
 
 
-def train_gnn_model(data, model, epochs=100):
-    data = list(data)
+def train_gnn_model(data, model, epochs=100, dataset="train"):
+    matches = data.matches[0]
+    if dataset == "val":
+        matches = data.data_val[0]
+
 
     criterion = nn.CrossEntropyLoss()
     criterion = nn.PoissonNLLLoss()
     # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    running_accuracy = []
     for epoch in range(epochs):
 
         running_loss = 0.0
-        for i, d in enumerate(data):
-            # get the inputs; data is a list of [inputs, labels]
-            # home, away, labels = d
+        # get the inputs; data is a list of [inputs, labels]
+        # home, away, labels = data
 
-            # zero the parameter gradients
-            optimizer.zero_grad()
+        # zero the parameter gradients
+        optimizer.zero_grad()
 
-            # forward + backward + optimize
-            # outputs = model(home, away)
+        # forward + backward + optimize
+        # outputs = model(home, away)
 
-            labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0]['lwd'])).reshape(-1,1), num_classes=len(np.unique(np.int64(d.matches[0]['lwd']))))
-            for j in range(d.matches[0].shape[0]):
-                home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], \
-                                    labels[j]
-                                    # d.matches[0].iloc[j]['lwd']
-                if j > 0:
-                    update_win_lose_network(d.win_lose_network[0], d.matches[0].iloc[j - 1])
-                create_edge_index(d, home, away, d.matches[0].iloc[j]['lwd'])
-                calculate_edge_weight(d, curr_time=j)
-                # calculate_node_weight(d, j, d.matches[0].shape[0])
-                outputs = model(d, home, away)
-                # update_node_time(d, j)
-                update_edge_time(d, home, away, curr_time=j)
+        labels = torch.nn.functional.one_hot(torch.tensor(np.int64(matches['lwd'])).reshape(-1,1), num_classes=len(np.unique(np.int64(matches['lwd']))))
+        for j in range(matches.shape[0]):
+            home, away, label = matches.iloc[j]['home_team'], matches.iloc[j]['away_team'], \
+                                labels[j]
+                                # data.matches[0].iloc[j]['lwd']
 
-                loss = criterion(outputs, label.to(torch.float))
-                loss.backward()
-                optimizer.step()
+            if j > 0:
+                update_win_lose_network(data.win_lose_network[0], matches.iloc[j - 1])
+            create_edge_index(data, home, away, matches.iloc[j]['lwd'])
+            calculate_edge_weight(data)
+            # calculate_node_weight(data, j, data.matches[0].shape[0])
+            outputs = model(data, home, away)
+            # update_node_time(data, j)
+            update_edge_time(data, home, away)
+            data.curr_time += 1
 
-                # print statistics
-                running_loss += loss.item()
-                if j % 100 == 99:  # print every 100 mini-batches
-                    print('[%d, %5d] loss: %.3f '
-                          # 'accuracy: %.3f'
-                          %
-                          (epoch + 1, j + 1, running_loss / 100
-                           # , test_model(data, model)
-                           ))
-                    running_loss = 0.0
+            loss = criterion(outputs, label.to(torch.float))
+            loss.backward()
+            optimizer.step()
+
+            # print statistics
+            running_loss += loss.item()
+            # if j % 10 == 9:  # print every 100 mini-batches
+            #     print(j)
+            #     print('[%data, %5d] loss: %.3f '
+            #           # 'accuracy: %.3f'
+            #           %
+            #           (epoch + 1, j + 1, running_loss / 100
+            #            # , test_model(data, model)
+            #            ))
         # TODO: Add validation data
+        data.curr_time -= matches.shape[0]
+        running_accuracy.append(test_gnn_model(data, model, "val"))
+        print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, running_accuracy[epoch], running_loss))
+        # running_loss = 0.0
+    update_win_lose_network(data.win_lose_network[0], matches.iloc[j])
     print('Finished Training')
-    print(test_gnn_model(data, model, "train"))
+    plot_accuracy(running_accuracy)
 
-
-def test_gnn_model(data, model, data_type="test"):
+def test_gnn_model(data, model, data_type="val"):
     correct = 0
     total = 0
-    predictions = []
-    pred_index = []
-
     with torch.no_grad():
-        for d in data:
-            labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0]['lwd'])).reshape(-1, 1),
-                                                 num_classes=len(np.unique(np.int64(d.matches[0]['lwd']))))
+        matches = data.matches[0]
+        if data_type == "val":
+            matches = data.data_val[0]
+        elif data_type == "test":
+            matches = data.data_test[0]
+        labels = torch.nn.functional.one_hot(torch.tensor(np.int64(matches['lwd'])).reshape(-1, 1),
+                                             num_classes=len(np.unique(np.int64(matches['lwd']))))
 
-            for j in range(d.matches[0].shape[0]):
-                home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], \
-                                    labels[j]
-                outputs = model(d, home, away)
+        for j in range(matches.shape[0]):
+            home, away, label = matches.iloc[j]['home_team'], matches.iloc[j]['away_team'], \
+                                labels[j]
+            create_edge_index(data, home, away, matches.iloc[j]['lwd'])
+            calculate_edge_weight(data)
+            outputs = model(data, home, away)
 
-                predictions.append(outputs)
-
-                _, predicted = torch.max(outputs.data, 1)
-                label = d.matches[0].iloc[j]['lwd']
-                total += 1
-                correct += (predicted == label).sum().item()
-                pred_index.append(predicted)
+            _, predicted = torch.max(outputs.data, 1)
+            label = matches.iloc[j]['lwd']
+            total += 1
+            correct += (predicted == label).sum().item()
 
     # print('Accuracy of the network on the %s data: %.5f %%' % (data_type,
     #                                                            100 * correct / total))

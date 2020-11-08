@@ -18,11 +18,12 @@ if __name__ == '__main__':
 
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
-    filename = "../data/mini_data.csv"
-    # filename = "../data/GER1_all.csv"
+    # filename = "../data/mini_data.csv"
+    filename = "../data/GER1_all.csv"
     dt = DataTransformer(filename)
     # home, away, label = dt.get_train_data()
-    dt.print_metadata(dt.data, "Information on the whole dataset: ")
+    print("Information on the whole dataset: ")
+    dt.print_metadata(dt.data, "whole")
 
     if model_id == 0:
         # -----------Flat model---------------------
@@ -49,10 +50,11 @@ if __name__ == '__main__':
     else:
         #----------GNN------------------------------
         dataset = PRDataset(root='../', filename=filename)
-        dataset.process()
-        batch_size = 1
-        train_loader = DataLoader(dataset, batch_size=batch_size)
-        model = GNNModel(dt.n_teams)
-        train_gnn_model(train_loader, model)
-        # evaluate(train_loader, model)
+        data_list = dataset.process()
+        for data in data_list:
+            model = GNNModel(data.n_teams[0])
+            train_gnn_model(data, model, epochs=1)
+            train_gnn_model(data, model, epochs=100, dataset="val")
+            print(test_gnn_model(data, model, "test"))
+            # evaluate(train_loader, model)
 

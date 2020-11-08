@@ -13,9 +13,14 @@ class DataTransformer:
     def __init__(self, filename: str):
         self.filename = filename
         self.data = None
+        self.data_train = None
+        self.data_val = None
+        self.data_test = None
+
         self.read_data()
         self.data = self.clean_data(self.data)
-        self.prepare_data()
+        self.N = self.data.shape[0]
+        # self.prepare_data()
 
     def read_data(self):
         """Read the data from csv with correct data types."""
@@ -40,12 +45,12 @@ class DataTransformer:
             data = self.data.to_numpy()
         return data
 
-    def prepare_data(self, data=None, split_to_test=True):
+    def prepare_data(self, data=None, split_to_test=True, save_to_self=False):
         if data is None:
             data = self.data
         data = data.to_numpy()
         teams = np.unique(data[:, [3,4]])
-        self.n_teams = len(teams)
+        # self.n_teams = len(teams)
         X = data[:, [3, 4]]
 
         X = X.flatten()
@@ -57,19 +62,30 @@ class DataTransformer:
         data[:, [3, 4]] = np.reshape(X, (-1, 2))
 
         if split_to_test:
-            separator = int(data.__len__() * 0.8)
-            self.data_train = pd.DataFrame(data=data[:separator], columns=names)
-            self.data_test = pd.DataFrame(data=data[separator:], columns=names)
-            return self.data_train, self.data_test, teams_encoded
+            separator_val = int(data.__len__() * 0.8)
+            separator_test = int(data.__len__() * 0.9)
+            data_train = pd.DataFrame(data=data[:separator_val], columns=names)
+            data_val = pd.DataFrame(data=data[separator_val:separator_test], columns=names)
+            data_test = pd.DataFrame(data=data[separator_test:], columns=names)
+            self.print_metadata(data_train, "train")
+            self.print_metadata(data_val, "val")
+            self.print_metadata(data_test, "test")
+            if save_to_self:
+                self.data_train = data_train
+                self.data_val = data_val
+                self.data_test = data_test
+            self.N = data.shape[0]
+            return data_train, data_val, data_test, teams_encoded
         else:
-            self.data = pd.DataFrame(data=data, columns=names)
+            data = pd.DataFrame(data=data, columns=names)
+            if save_to_self:
+                self.data = data
             return self.data, teams_encoded
 
     def to_tensor(self,data):
         home = torch.tensor(data['home_team'].values.astype(int)).to(torch.int64)
         away = torch.tensor(data['away_team'].values.astype(int)).to(torch.int64)
         label = data['lwd'].values.astype(int).reshape(-1,1)
-
         # self.ohe = OneHotEncoder()
         # self.ohe.fit(label)
         # label = self.ohe.transform(label).toarray()
@@ -88,14 +104,12 @@ class DataTransformer:
         return home, away, label
 
     @staticmethod
-    def print_metadata(data, message=None):
+    def print_metadata(data, message=""):
         # print some metadata
-        if message is not None:
-            print(message)
         won = data[data['result'] == "W"].shape[0]
         lost = data[data['result'] == "L"].shape[0]
         draw = data[data['result'] == "D"].shape[0]
         total = data.shape[0]
         # print("Won:", won, won / total * 100, ", Lost:", lost, lost / total * 100)
-        print("Won: {}%, Lost: {}%, Draw: {}%".format(won*100 / total, lost*100 / total, draw*100 / total))
-        print("The number of data points in the data set is:", total)
+        print("Total {} data points: {}, Won: {}%, Lost: {}%, Draw: {}%".format(message, total, won*100 / total, lost*100 / total, draw*100 / total))
+        # print("The number of data points in the data set is:", total)
