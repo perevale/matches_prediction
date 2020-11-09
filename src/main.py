@@ -52,8 +52,8 @@ if __name__ == '__main__':
         dataset = PRDataset(root='../', filename=filename)
         data_list = dataset.process()
         for data in data_list:
-            model = GNNModel(data.n_teams[0])
-            train_gnn_model(data, model, epochs=1)
+            model = GNNModel(data.n_teams)
+            train_gnn_model(data, model, epochs=20)
             train_gnn_model(data, model, epochs=100, dataset="val")
             print(test_gnn_model(data, model, "test"))
             # evaluate(train_loader, model)

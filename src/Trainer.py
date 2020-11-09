@@ -8,9 +8,9 @@ from src.utils import update_win_lose_network, create_edge_index, update_node_ti
 
 
 def train_gnn_model(data, model, epochs=100, dataset="train"):
-    matches = data.matches[0]
+    matches = data.matches
     if dataset == "val":
-        matches = data.data_val[0]
+        matches = data.data_val
 
 
     criterion = nn.CrossEntropyLoss()
@@ -38,7 +38,7 @@ def train_gnn_model(data, model, epochs=100, dataset="train"):
                                 # data.matches[0].iloc[j]['lwd']
 
             if j > 0:
-                update_win_lose_network(data.win_lose_network[0], matches.iloc[j - 1])
+                update_win_lose_network(data.win_lose_network, matches.iloc[j - 1])
             create_edge_index(data, home, away, matches.iloc[j]['lwd'])
             calculate_edge_weight(data)
             # calculate_node_weight(data, j, data.matches[0].shape[0])
@@ -66,7 +66,7 @@ def train_gnn_model(data, model, epochs=100, dataset="train"):
         running_accuracy.append(test_gnn_model(data, model, "val"))
         print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, running_accuracy[epoch], running_loss))
         # running_loss = 0.0
-    update_win_lose_network(data.win_lose_network[0], matches.iloc[j])
+    update_win_lose_network(data.win_lose_network, matches.iloc[j])
     print('Finished Training')
     plot_accuracy(running_accuracy)
 
@@ -74,11 +74,11 @@ def test_gnn_model(data, model, data_type="val"):
     correct = 0
     total = 0
     with torch.no_grad():
-        matches = data.matches[0]
+        matches = data.matches
         if data_type == "val":
-            matches = data.data_val[0]
+            matches = data.data_val
         elif data_type == "test":
-            matches = data.data_test[0]
+            matches = data.data_test
         labels = torch.nn.functional.one_hot(torch.tensor(np.int64(matches['lwd'])).reshape(-1, 1),
                                              num_classes=len(np.unique(np.int64(matches['lwd']))))
 

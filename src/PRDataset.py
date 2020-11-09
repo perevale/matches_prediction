@@ -70,6 +70,6 @@ class PRDataset(InMemoryDataset):
             data_list.append(data)
 
         data, slices = self.collate(data_list)
-        return data
+        return data_list
         # self.matches = dt.data
         # torch.save((data, slices), self.processed_paths[0])
