@@ -53,6 +53,10 @@ class PRDataset(InMemoryDataset):
 
             node_time = np.zeros(n_teams)
 
+            won = data_val[data_val['result'] == "W"].shape[0]
+            lost = data_val[data_val['result'] == "L"].shape[0]
+            draw = data_val[data_val['result'] == "D"].shape[0]
+
             data = Data(
                 x=x,
                 # edge_index=edge_index.t().contiguous(),
@@ -65,7 +69,10 @@ class PRDataset(InMemoryDataset):
                 data_val=data_val,
                 data_test=data_test,
                 curr_time=0,
-                N=dt.N
+                N=dt.N,
+                baseline=max(won, lost, draw),
+                running_loss=[],
+                running_accuracy=[]
             )
             data_list.append(data)
 

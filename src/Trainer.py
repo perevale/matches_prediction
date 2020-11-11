@@ -17,11 +17,10 @@ def train_gnn_model(data, model, epochs=100, dataset="train"):
     criterion = nn.PoissonNLLLoss()
     # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     # optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
-    running_accuracy = []
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     for epoch in range(epochs):
 
-        running_loss = 0.0
+        loss_value = 0.0
         # get the inputs; data is a list of [inputs, labels]
         # home, away, labels = data
 
@@ -52,7 +51,7 @@ def train_gnn_model(data, model, epochs=100, dataset="train"):
             optimizer.step()
 
             # print statistics
-            running_loss += loss.item()
+            loss_value += loss.item()
             # if j % 10 == 9:  # print every 100 mini-batches
             #     print(j)
             #     print('[%data, %5d] loss: %.3f '
@@ -63,12 +62,13 @@ def train_gnn_model(data, model, epochs=100, dataset="train"):
             #            ))
         # TODO: Add validation data
         data.curr_time -= matches.shape[0]
-        running_accuracy.append(test_gnn_model(data, model, "val"))
-        print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, running_accuracy[epoch], running_loss))
-        # running_loss = 0.0
+        data.running_accuracy.append(test_gnn_model(data, model, "val"))
+        data.running_loss.append(loss_value)
+        print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, data.running_accuracy[-1], loss_value))
     update_win_lose_network(data.win_lose_network, matches.iloc[j])
-    print('Finished Training')
-    plot_accuracy(running_accuracy)
+    print('Finished training on {} data'.format(dataset))
+
+    # plot_accuracy(running_accuracy)
 
 def test_gnn_model(data, model, data_type="val"):
     correct = 0
@@ -96,7 +96,10 @@ def test_gnn_model(data, model, data_type="val"):
 
     # print('Accuracy of the network on the %s data: %.5f %%' % (data_type,
     #                                                            100 * correct / total))
-    return 100 * correct / total
+    accuracy = 100 * correct / total
+    if data_type == "test":
+        data.test_accuracy = accuracy
+    return accuracy
 
 
 def correct_by_class(data, model):
