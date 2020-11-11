@@ -133,7 +133,7 @@ def visualize_acc_loss(data, epochs, file_to_save):
     ax[0].axvspan(epochs[0]-1, epochs_total-1, color=colors[1], alpha=0.5, lw=0)
     ax[0].plot(data.running_accuracy)
     ax[0].hlines(data.test_accuracy, 0, epochs_total-1, colors=colors[2])
-    ax[0].legend(bbox_to_anchor=(0.2, -0.33), loc='lower left',
+    ax[0].legend(bbox_to_anchor=(0.2, -0.4), loc='lower left',
            ncol=1, borderaxespad=-0.3,handles=legend_elements_0)
     ax[0].title.set_text('Accuracy')
     # ax[0].set_xticks(list(range(0, epochs_total,math.ceil(epochs_total/10) )))
@@ -141,6 +141,8 @@ def visualize_acc_loss(data, epochs, file_to_save):
     plt.sca(ax[0])
     ticks, ticks_labels = create_ticks(epochs)
     plt.xticks(ticks, ticks_labels)
+    plt.xlabel("epochs")
+    plt.ylabel("accuracy [%]")
 
     legend_elements_0 = [Line2D([0], [0], label='Loss on validation data'),
                        Line2D([0], [0], marker='o', color='w', label=area_labels[0],
@@ -157,6 +159,8 @@ def visualize_acc_loss(data, epochs, file_to_save):
     plt.sca(ax[1])
     ticks, ticks_labels = create_ticks(epochs)
     plt.xticks(ticks, ticks_labels)
+    plt.xlabel("epochs")
+    plt.ylabel("loss")
 
     fig.tight_layout()
     plt.savefig(file_to_save)

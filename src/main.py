@@ -47,21 +47,22 @@ def run_pr_model(filename):
     train_pr(train_loader, model)
 
 
-def run_gnn_model(filename):
+def run_gnn_model(filename, lr=(0.001, 0.0001), exp_num=0, **kwargs):
     # ----------GNN------------------------------
     dataset = PRDataset(root='../', filename=filename)
     data_list = dataset.process()
-    epochs = [500, 100]
+    epochs = [500, 300]
     for i, data in enumerate(data_list):
-        model = GNNModel(data.n_teams)
-        train_gnn_model(data, model, epochs=epochs[0])
-        train_gnn_model(data, model, epochs=epochs[1], dataset="val")
+        model = GNNModel(data.n_teams, **kwargs)
+        train_gnn_model(data, model, epochs=epochs[0], lr=lr[0])
+        train_gnn_model(data, model, epochs=epochs[1], dataset="val", lr=lr[1])
         test_acc = test_gnn_model(data, model, "test")
         file = outfile.format(pickle_dir, i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)
         # evaluate(train_loader, model)
         visualize_acc_loss(data, epochs, outfile.format(images_dir, i, exp_num, "png"))
+        return test_acc
 
 
 def save_to_pickle(filename, data):
@@ -75,9 +76,28 @@ def load_from_pickle(filename):
         return data
 
 
+def grid_search(filename, outfile):
+    embed_dim = [1, 2, 3, 5, 10]
+    n_conv = [1, 2, 3]
+    dims = [(1, 1, 1), (2, 2, 2), (2, 4, 2), (4, 4, 4)]
+    lr = [(0.001, 0.0001), (0.0001, 0.001), (0.001, 0.001), (0.0001, 0.0001)]
+    exp_counter = 1
+    for e in embed_dim:
+        for n in n_conv:
+            for d in dims:
+                for l in lr:
+                    with open(outfile, "a+") as f:
+                        acc = run_gnn_model(filename,l, exp_counter, embed_dim=e, n_conv=n, conv_dims=d)
+                        f.write("EXP:[{}] embed_dim={}, n_conv={}, conv_dims={}, l={} achieved accuracy:{}\n".
+                                format(exp_counter, e, n, d, l, acc))
+                        print("EXP:[{}] embed_dim={}, n_conv={}, conv_dims={}, l={} achieved accuracy:{}\n".
+                                format(exp_counter, e, n, d, l, acc))
+                        exp_counter += 1
+
+
 if __name__ == '__main__':
-    model_id = 3  # 0:Flat, 1:PageRank, 2: GNN, 3(or any): visualization
-    exp_num = 0
+    model_id = 4  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn
+    exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
     # filename = "../data/mini_data.csv"
@@ -86,6 +106,7 @@ if __name__ == '__main__':
     outfile = "{}data_{}_model_{}.{}"
     pickle_dir = "../data/models/"
     images_dir = "../data/img/"
+    grid_search_file = "../data/grid_search_results.txt"
 
     if model_id == 0:
         run_flat_model(filename)
@@ -93,6 +114,8 @@ if __name__ == '__main__':
         run_pr_model(filename)
     elif model_id == 2:
         run_gnn_model(filename)
+    elif model_id == 4:
+        grid_search(filename, grid_search_file)
     else:
         file = outfile.format(pickle_dir, 0,exp_num, "pickle")
         data = load_from_pickle(file)

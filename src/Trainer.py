@@ -7,7 +7,7 @@ from sklearn.metrics import roc_auc_score
 from src.utils import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight, update_edge_time, calculate_edge_weight, plot_accuracy
 
 
-def train_gnn_model(data, model, epochs=100, dataset="train"):
+def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_info=False):
     matches = data.matches
     if dataset == "val":
         matches = data.data_val
@@ -17,7 +17,7 @@ def train_gnn_model(data, model, epochs=100, dataset="train"):
     criterion = nn.PoissonNLLLoss()
     # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     # optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
     for epoch in range(epochs):
 
         loss_value = 0.0
@@ -64,9 +64,11 @@ def train_gnn_model(data, model, epochs=100, dataset="train"):
         data.curr_time -= matches.shape[0]
         data.running_accuracy.append(test_gnn_model(data, model, "val"))
         data.running_loss.append(loss_value)
-        print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, data.running_accuracy[-1], loss_value))
+        if print_info:
+            print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, data.running_accuracy[-1], loss_value))
     update_win_lose_network(data.win_lose_network, matches.iloc[j])
-    print('Finished training on {} data'.format(dataset))
+    if print_info:
+        print('Finished training on {} data'.format(dataset))
 
     # plot_accuracy(running_accuracy)
 

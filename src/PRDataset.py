@@ -53,9 +53,9 @@ class PRDataset(InMemoryDataset):
 
             node_time = np.zeros(n_teams)
 
-            won = data_val[data_val['result'] == "W"].shape[0]
-            lost = data_val[data_val['result'] == "L"].shape[0]
-            draw = data_val[data_val['result'] == "D"].shape[0]
+            won = data_test[data_test['result'] == "W"].shape[0]
+            lost = data_test[data_test['result'] == "L"].shape[0]
+            draw = data_test[data_test['result'] == "D"].shape[0]
 
             data = Data(
                 x=x,
