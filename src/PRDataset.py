@@ -4,7 +4,7 @@ from torch_geometric.data import Data
 from torch_geometric.data import InMemoryDataset
 from tqdm import tqdm
 
-from src.DataTransformer import DataTransformer
+from DataTransformer import DataTransformer
 
 
 class PRDataset(InMemoryDataset):
