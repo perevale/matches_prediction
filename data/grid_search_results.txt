@@ -1,0 +1,7 @@
+EXP:[1] embed_dim=1, n_conv=1, conv_dims=(1, 1, 1), l=(0.001, 0.0001) achieved accuracy:48.94433781190019
+EXP:[2] embed_dim=1, n_conv=1, conv_dims=(1, 1, 1), l=(0.0001, 0.001) achieved accuracy:50.09596928982725
+EXP:[3] embed_dim=1, n_conv=1, conv_dims=(1, 1, 1), l=(0.001, 0.001) achieved accuracy:48.75239923224568
+EXP:[4] embed_dim=1, n_conv=1, conv_dims=(1, 1, 1), l=(0.0001, 0.0001) achieved accuracy:46.449136276391556
+EXP:[5] embed_dim=1, n_conv=1, conv_dims=(2, 2, 2), l=(0.001, 0.0001) achieved accuracy:46.257197696737045
+EXP:[6] embed_dim=1, n_conv=1, conv_dims=(2, 2, 2), l=(0.0001, 0.001) achieved accuracy:46.257197696737045
+EXP:[7] embed_dim=1, n_conv=1, conv_dims=(2, 2, 2), l=(0.001, 0.001) achieved accuracy:47.02495201535508

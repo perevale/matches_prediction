@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+# import seaborn as sns
 import numpy.ma as ma
 from matplotlib.lines import Line2D
 import math
@@ -107,12 +107,6 @@ def calculate_edge_weight(data, time_weighting="linear"):
             data.edge_weight = torch.tensor(np.exp(int(data.curr_time) - prev_edge_time)).reshape(-1,)
     else:
         data.edge_weight = torch.tensor([])
-
-
-def plot_accuracy(accuracy):
-    sns.set_style("darkgrid")
-    plt.plot(accuracy)
-    plt.show()
 
 
 def visualize_acc_loss(data, epochs, file_to_save):
