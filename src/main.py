@@ -1,13 +1,13 @@
 import torch
-from src.DataTransformer import DataTransformer
-from src.Dataset import Dataset
-from src.FlatModel import FlatModel
-from src.Trainer import train_gnn_model, test_gnn_model, correct_by_class, evaluate, train_pr, train_flat_model, test_flat_model
+from DataTransformer import DataTransformer
+from Dataset import Dataset
+from FlatModel import FlatModel
+from Trainer import train_gnn_model, test_gnn_model, correct_by_class, evaluate, train_pr, train_flat_model, test_flat_model
 from torch_geometric.data import DataLoader
-from src.GNNModel import GNNModel
-from src.PRDataset import PRDataset
-from src.PageRank import PageRank
-from src.utils import visualize_acc_loss
+from GNNModel import GNNModel
+from PRDataset import PRDataset
+from PageRank import PageRank
+from utils import visualize_acc_loss
 import pickle
 # sacred
 # from sacred import Experiment

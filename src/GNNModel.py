@@ -5,7 +5,7 @@ from torch_geometric.nn import GraphConv, TopKPooling, GatedGraphConv
 from torch_geometric.nn import global_mean_pool as gap, global_max_pool as gmp
 import torch.nn.functional as F
 import numpy as np
-from src.SAGEConv import SAGEConv
+from SAGEConv import SAGEConv
 from torch_geometric.nn import GCNConv, ClusterGCNConv
 from torch.nn import LogSoftmax
 

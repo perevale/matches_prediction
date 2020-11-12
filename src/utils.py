@@ -6,6 +6,7 @@ import numpy.ma as ma
 from matplotlib.lines import Line2D
 import math
 
+
 def update_win_lose_network(win_lose_network, record):
     winning_team = record.home_team
     losing_team = record.away_team
