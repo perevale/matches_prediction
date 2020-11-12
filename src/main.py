@@ -49,7 +49,7 @@ def run_pr_model(filename):
 
 def run_gnn_model(filename, lr=(0.001, 0.0001), exp_num=0, **kwargs):
     # ----------GNN------------------------------
-    dataset = PRDataset(root='../', filename=filename)
+    dataset = PRDataset(filename=filename)
     data_list = dataset.process()
     epochs = [500, 300]
     for i, data in enumerate(data_list):
