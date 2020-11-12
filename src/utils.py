@@ -165,6 +165,8 @@ def visualize_acc_loss(data, epochs, file_to_save):
     fig.tight_layout()
     plt.savefig(file_to_save)
     plt.show()
+    plt.clf()
+    plt.cla()
 
 
 def create_ticks(epochs):
