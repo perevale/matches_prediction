@@ -9,7 +9,7 @@ from SAGEConv import SAGEConv
 from torch_geometric.nn import GCNConv, ClusterGCNConv
 from torch.nn import LogSoftmax
 
-from src.utils import calculate_edge_weight, get_neighbour_edge_index
+from utils import calculate_edge_weight, get_neighbour_edge_index
 
 
 class GNNModel(torch.nn.Module):
