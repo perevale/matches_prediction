@@ -66,7 +66,7 @@ def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_in
         data.running_loss.append(loss_value)
         for param_group in optimizer.param_groups:
             print(param_group['lr'])
-        if epoch % 3 == 2:
+        if epoch % 50 == 49:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.8
         if print_info:
