@@ -64,6 +64,11 @@ def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_in
         data.curr_time -= matches.shape[0]
         data.running_accuracy.append(test_gnn_model(data, model, "val"))
         data.running_loss.append(loss_value)
+        for param_group in optimizer.param_groups:
+            print(param_group['lr'])
+        if epoch % 3 == 2:
+            for param_group in optimizer.param_groups:
+                param_group['lr'] *= 0.8
         if print_info:
             print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, data.running_accuracy[-1], loss_value))
     update_win_lose_network(data.win_lose_network, matches.iloc[j])
