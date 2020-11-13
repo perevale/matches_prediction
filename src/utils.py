@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy.ma as ma
 from matplotlib.lines import Line2D
 import math
+import pickle
 
 
 def update_win_lose_network(win_lose_network, record):
@@ -159,7 +160,7 @@ def visualize_acc_loss(data, epochs, file_to_save):
 
     fig.tight_layout()
     plt.savefig(file_to_save)
-    plt.show()
+    # plt.show()
     plt.clf()
     plt.cla()
 
@@ -185,3 +186,14 @@ def create_ticks(epochs):
     ticks_labels = [t+1 for t in ticks]
 
     return ticks, ticks_labels
+
+
+def save_to_pickle(filename, data):
+    with open(filename, "wb") as file:
+        pickle.dump(data, file, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def load_from_pickle(filename):
+    with open(filename, 'rb') as file:
+        data = pickle.load(file)
+        return data

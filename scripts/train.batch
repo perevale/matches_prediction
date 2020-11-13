@@ -1,0 +1,25 @@
+#!/bin/bash
+#SBATCH --time=12:00:00
+#SBATCH --mem=64G
+
+HOME_STORAGE=/home/perevale/thesis
+TMP_STORAGE=/data/temporary/$SLURM_JOBID
+IMAGES_STORAGE=img
+MODELS_STORAGE=models
+SCRIPTS_STORAGE=scripts
+
+mkdir $TMP_STORAGE
+cd $TMP_STORAGE
+
+git clone -b exps/grid_search --single-branch https://github.com/perevale/matches_prediction.git
+
+#import all modules
+module add 
+
+cd
+srun ./matches_prediction/$EXPERIMENT_NAME/$EXPERIMENT_GAME/$EXPERIMENT_GAME"_"$EXPERIMENT_ALGORITHM $1 4 1 0 >experiment_result.txt
+
+mv experiment_result.txt $HOME_STORAGE/experiment-results/$EXPERIMENT_NAME/$EXPERIMENT_GAME/$EXPERIMENT_SETTING/$EXPERIMENT_ALGORITHM".txt"
+
+cd /data/temporary
+rm -Rf $SLURM_JOBID

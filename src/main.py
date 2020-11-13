@@ -7,7 +7,7 @@ from torch_geometric.data import DataLoader
 from GNNModel import GNNModel
 from PRDataset import PRDataset
 from PageRank import PageRank
-from utils import visualize_acc_loss
+from utils import visualize_acc_loss, save_to_pickle, load_from_pickle
 import pickle
 # sacred
 # from sacred import Experiment
@@ -51,7 +51,7 @@ def run_gnn_model(filename, lr=(0.001, 0.0001), exp_num=0, **kwargs):
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
-    epochs = [500, 300]
+    epochs = [2, 2]
     for i, data in enumerate(data_list):
         model = GNNModel(data.n_teams, **kwargs)
         train_gnn_model(data, model, epochs=epochs[0], lr=lr[0])
@@ -65,34 +65,26 @@ def run_gnn_model(filename, lr=(0.001, 0.0001), exp_num=0, **kwargs):
         return test_acc
 
 
-def save_to_pickle(filename, data):
-    with open(filename, "wb") as file:
-        pickle.dump(data, file, protocol=pickle.HIGHEST_PROTOCOL)
-
-
-def load_from_pickle(filename):
-    with open(filename, 'rb') as file:
-        data = pickle.load(file)
-        return data
-
-
 def grid_search(filename, outfile):
     embed_dim = [1, 2, 3, 5, 10]
     n_conv = [1, 2, 3]
     dims = [(1, 1, 1), (2, 2, 2), (2, 4, 2), (4, 4, 4)]
     lr = [(0.001, 0.0001), (0.0001, 0.001), (0.001, 0.001), (0.0001, 0.0001)]
-    exp_counter = 1
+    exp_counter = 0
     for e in embed_dim:
         for n in n_conv:
             for d in dims:
                 for l in lr:
+                    exp_counter += 1
+                    if exp_counter < 12:
+                        continue
                     with open(outfile, "a+") as f:
                         acc = run_gnn_model(filename,l, exp_counter, embed_dim=e, n_conv=n, conv_dims=d)
                         f.write("EXP:[{}] embed_dim={}, n_conv={}, conv_dims={}, l={} achieved accuracy:{}\n".
                                 format(exp_counter, e, n, d, l, acc))
                         print("EXP:[{}] embed_dim={}, n_conv={}, conv_dims={}, l={} achieved accuracy:{}\n".
                                 format(exp_counter, e, n, d, l, acc))
-                        exp_counter += 1
+
 
 
 if __name__ == '__main__':

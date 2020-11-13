@@ -61,11 +61,13 @@ class DataTransformer:
         data[:, [3, 4]] = np.reshape(X, (-1, 2))
 
         if split_to_test:
-            separator_val = int(data.__len__() * 0.8)
-            separator_test = int(data.__len__() * 0.9)
+            separator_val = int(data.__len__() * 0.7)
+            separator_test = int(data.__len__() * 0.8)
+            separator_test_final = int(int(data.__len__() * 0.9))
             data_train = pd.DataFrame(data=data[:separator_val], columns=names)
             data_val = pd.DataFrame(data=data[separator_val:separator_test], columns=names)
-            data_test = pd.DataFrame(data=data[separator_test:], columns=names)
+            data_test = pd.DataFrame(data=data[separator_test:separator_test_final], columns=names)
+            data_test_final = pd.DataFrame(data=data[separator_test_final:], columns=names)
             self.print_metadata(data_train, "train")
             self.print_metadata(data_val, "val")
             self.print_metadata(data_test, "test")
@@ -74,7 +76,7 @@ class DataTransformer:
                 self.data_val = data_val
                 self.data_test = data_test
             self.N = data.shape[0]
-            return data_train, data_val, data_test, teams_encoded
+            return data_train, data_val, data_test, data_test_final, teams_encoded
         else:
             data = pd.DataFrame(data=data, columns=names)
             if save_to_self:

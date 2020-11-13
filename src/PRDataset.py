@@ -21,7 +21,7 @@ class PRDataset():
         grouped = dt.data.groupby(['league'])  # ,'year'
         for league_year, group in tqdm(grouped):
             # group = dt.clean_data(group)
-            data_train, data_val, data_test, teams_enc = dt.prepare_data(data=group)
+            data_train, data_val, data_test, data_test_final, teams_enc = dt.prepare_data(data=group)
             n_teams = len(teams_enc['teams'].values)
             # win_lose_network = [{'won': set(), 'lost': set()} for _ in range(dt.n_teams)]
             win_lose_network = np.zeros((n_teams, 2, n_teams))
@@ -55,6 +55,7 @@ class PRDataset():
                 edge_time=edge_time,
                 data_val=data_val,
                 data_test=data_test,
+                data_test_final=data_test_final,
                 curr_time=0,
                 N=dt.N,
                 baseline=max(won, lost, draw),
