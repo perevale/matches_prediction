@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import sys
-from .mathes_prediction.scr.main import run_gnn_model
-from .mathes_prediction.utils import load_from_pickle
+# sys.path.append(pathToFolderContainingScripts)
+from .src.main import run_gnn_model
+from .src.utils import load_from_pickle
 
 exp_counter = sys.argv[1]
 parameters_filename = sys.argv[2]
