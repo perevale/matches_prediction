@@ -13,8 +13,8 @@ import pickle
 # from sacred import Experiment
 # from sacred.observers import FileStorageObserver
 outfile = "{}data_{}_model_{}.{}"
-pickle_dir = "../data/models/"
-images_dir = "../data/img/"
+pickle_dir = "{}data/models/"
+images_dir = "{}data/img/"
 
 
 def common_loading(filename):
@@ -50,7 +50,7 @@ def run_pr_model(filename):
     train_pr(train_loader, model)
 
 
-def run_gnn_model(filename, lr=(0.001, 0.0001), exp_num=0, **kwargs):
+def run_gnn_model(filename,dir_prefix="", lr=(0.001, 0.0001), exp_num=0, **kwargs):
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
@@ -60,11 +60,11 @@ def run_gnn_model(filename, lr=(0.001, 0.0001), exp_num=0, **kwargs):
         train_gnn_model(data, model, epochs=epochs[0], lr=lr[0])
         train_gnn_model(data, model, epochs=epochs[1], dataset="val", lr=lr[1])
         test_acc = test_gnn_model(data, model, "test")
-        file = outfile.format(pickle_dir, i, exp_num, "pickle")
+        file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)
         # evaluate(train_loader, model)
-        visualize_acc_loss(data, epochs, outfile.format(images_dir, i, exp_num, "png"))
+        visualize_acc_loss(data, epochs, outfile.format(images_dir.format(dir_prefix), i, exp_num, "png"))
         return test_acc
 
 
