@@ -12,6 +12,9 @@ import pickle
 # sacred
 # from sacred import Experiment
 # from sacred.observers import FileStorageObserver
+outfile = "{}data_{}_model_{}.{}"
+pickle_dir = "../data/models/"
+images_dir = "../data/img/"
 
 
 def common_loading(filename):
