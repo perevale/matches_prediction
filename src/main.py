@@ -54,7 +54,7 @@ def run_gnn_model(filename,dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **kw
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
-    epochs = [8, 2]
+    epochs = [500,300]
     for i, data in enumerate(data_list):
         model = GNNModel(data.n_teams, **kwargs)
         train_gnn_model(data, model, epochs=epochs[0], lr=lr[0])

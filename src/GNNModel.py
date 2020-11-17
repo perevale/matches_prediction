@@ -13,7 +13,7 @@ from utils import calculate_edge_weight, get_neighbour_edge_index
 
 
 class GNNModel(torch.nn.Module):
-    def __init__(self, num_teams, embed_dim=3, n_conv=2, conv_dims=(2, 2), **kwargs):
+    def __init__(self, num_teams, embed_dim=5, n_conv=3, conv_dims=(2, 2, 2), **kwargs):
         super(GNNModel, self).__init__()
         self.embed_dim = embed_dim
         self.n_conv = n_conv
@@ -47,10 +47,11 @@ class GNNModel(torch.nn.Module):
         x = F.leaky_relu(x)
 
         for i in range(self.n_conv-1):
-            data.edge_index = get_neighbour_edge_index(data)
             if len(data.edge_index) > 0:
-                edge_weight = calculate_edge_weight(data)
-                x = F.leaky_relu(self.conv_layers[i+1](x, data.edge_index, edge_weight))
+                data.edge_index = get_neighbour_edge_index(data)
+                if len(data.edge_index) > 0:
+                    edge_weight = calculate_edge_weight(data)
+                    x = F.leaky_relu(self.conv_layers[i+1](x, data.edge_index, edge_weight))
 
         x = torch.cat([x[home],x[away]], dim=-1)
 
