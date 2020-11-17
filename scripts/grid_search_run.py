@@ -11,9 +11,17 @@ parameters_filename = sys.argv[2]
 input_filename = sys.argv[3]+"data/GER1_all.csv"
 output_filename = "/home/perevale/thesis/results/results.txt"
 
+
+def to_float(tup):
+    return tuple(float(i) for i in tup)
+
+
+def to_int(tup):
+    return tuple(int(i) for i in tup)
+
 parameters = load_from_pickle(parameters_filename)
-acc = run_gnn_model(input_filename,dir_prefix=sys.argv[3], lr=parameters["lr"], exp_num=exp_counter, embed_dim=parameters["embed_dim"],
-                    n_conv=parameters["n_conv"], conv_dims=parameters["conv_dims"])
+acc = run_gnn_model(input_filename,dir_prefix=sys.argv[3], lr=to_float(parameters["lr"]), exp_num=int(exp_counter), embed_dim=int(parameters["embed_dim"]),
+                    n_conv=int(parameters["n_conv"]), conv_dims=to_int(parameters["conv_dims"]))
 with open(output_filename, "a+") as f:
     f.write("EXP:[{}] embed_dim={}, n_conv={}, conv_dims={}, l={} achieved accuracy:{}\n".
             format(exp_counter, parameters["embed_dim"], parameters["n_conv"], parameters["conv_dims"],

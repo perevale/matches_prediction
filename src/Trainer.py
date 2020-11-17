@@ -17,7 +17,7 @@ def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_in
     criterion = nn.PoissonNLLLoss()
     # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     # optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
-    optimizer = optim.Adam(model.parameters(), lr=float(lr))
+    optimizer = optim.Adam(model.parameters(), lr=lr)
     for epoch in range(epochs):
 
         loss_value = 0.0
