@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 import sys
-sys.path.append(sys.argv[3])
+sys.path.append(sys.argv[3]+"src")
+# sys.path.append(sys.argv[3]+"data")
+
 from main import run_gnn_model
 from utils import load_from_pickle
 
 exp_counter = sys.argv[1]
 parameters_filename = sys.argv[2]
-input_filename = "../data/GER1_all.csv"
+input_filename = sys.argv[3]+"data/GER1_all.csv"
 output_filename = "/home/perevale/thesis/results/results.txt"
 
 parameters = load_from_pickle(parameters_filename)
