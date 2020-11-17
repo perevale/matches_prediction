@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-sys.path.append("matches_prediction/src/")
+sys.path.append(sys.argv[3])
 from main import run_gnn_model
 from utils import load_from_pickle
 
