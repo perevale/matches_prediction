@@ -12,7 +12,7 @@ input_filename = sys.argv[3]+"data/GER1_all.csv"
 output_filename = "/home/perevale/thesis/results/results.txt"
 
 parameters = load_from_pickle(parameters_filename)
-acc = run_gnn_model(input_filename, parameters["lr"], exp_counter, embed_dim=parameters["embed_dim"],
+acc = run_gnn_model(input_filename,dir_prefix=sys.argv[3], lr=parameters["lr"], exp_num=exp_counter, embed_dim=parameters["embed_dim"],
                     n_conv=parameters["n_conv"], conv_dims=parameters["conv_dims"])
 with open(output_filename, "a+") as f:
     f.write("EXP:[{}] embed_dim={}, n_conv={}, conv_dims={}, l={} achieved accuracy:{}\n".

@@ -91,16 +91,16 @@ def grid_search(filename, outfile):
 
 
 if __name__ == '__main__':
-    model_id = 4  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn
+    model_id = 3  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
     # filename = "../data/mini_data.csv"
     filename = "../data/GER1_all.csv"
 
-    outfile = "{}data_{}_model_{}.{}"
-    pickle_dir = "../data/models/"
-    images_dir = "../data/img/"
+    # outfile = "{}data_{}_model_{}.{}"
+    # pickle_dir = "../data/models/"
+    # images_dir = "../data/img/"
     grid_search_file = "../data/grid_search_results.txt"
 
     if model_id == 0:
