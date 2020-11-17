@@ -50,7 +50,7 @@ def run_pr_model(filename):
     train_pr(train_loader, model)
 
 
-def run_gnn_model(filename,dir_prefix="", lr=(0.001, 0.0001), exp_num=0, **kwargs):
+def run_gnn_model(filename,dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **kwargs):
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
@@ -91,7 +91,7 @@ def grid_search(filename, outfile):
 
 
 if __name__ == '__main__':
-    model_id = 3  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn
+    model_id = 2  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
