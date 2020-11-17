@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import sys
-# sys.path.append(pathToFolderContainingScripts)
-from .src.main import run_gnn_model
-from .src.utils import load_from_pickle
+sys.path.append("matches_prediction/src")
+from main import run_gnn_model
+from utils import load_from_pickle
 
 exp_counter = sys.argv[1]
 parameters_filename = sys.argv[2]
