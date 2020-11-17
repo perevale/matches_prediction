@@ -20,7 +20,8 @@ git clone -b exps/grid_search --single-branch https://github.com/perevale/matche
 module add PyTorch-Geometric/1.6.0-fosscuda-2019b-Python-3.7.4-PyTorch-1.6.0
 
 chmod -R 777 matches_prediction
-srun $TMP_STORAGE/matches_prediction/scripts/grid_search_run.py $1 $2
+cd matches_prediction
+srun scripts/grid_search_run.py $1 $2
 
 mv $TMP_STORAGE/data/img/*.png $HOME_STORAGE/$IMAGES_STORAGE
 mv $TMP_STORAGE/data/models/*.pickle $HOME_STORAGE/$MODELS_STORAGE
