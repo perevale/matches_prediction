@@ -1,6 +1,8 @@
 #!/bin/bash
 #SBATCH --time=12:00:00
-#SBATCH --mem=64G
+#SBATCH --mem=4G
+#SBATCH --partition=cpu
+
 
 HOME_STORAGE=/home/perevale/thesis
 TMP_STORAGE=/data/temporary/$SLURM_JOBID
@@ -15,13 +17,13 @@ cd $TMP_STORAGE
 git clone -b exps/grid_search --single-branch https://github.com/perevale/matches_prediction.git
 
 #import all modules
-module add torch_geometric-1.6.0
+module add PyTorch-Geometric/1.6.0-fosscuda-2019b-Python-3.7.4-PyTorch-1.6.0
 
-
-srun ./matches_prediction/$SCRIPTS_STORAGE/grid_search_run.py $1 $2
+chmod -R 777 matches_prediction
+srun $TMP_STORAGE/matches_prediction/scripts/grid_search_run.py $1 $2
 
 mv $TMP_STORAGE/data/img/*.png $HOME_STORAGE/$IMAGES_STORAGE
-mv $TMP_STORAGE/data/img/*.pickle $HOME_STORAGE/$MODELS_STORAGE
+mv $TMP_STORAGE/data/models/*.pickle $HOME_STORAGE/$MODELS_STORAGE
 
 cd /data/temporary
 rm -Rf $SLURM_JOBID

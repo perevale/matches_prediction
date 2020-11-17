@@ -16,3 +16,9 @@ EXP:[15] embed_dim=1, n_conv=1, conv_dims=(4, 4, 4), l=(0.001, 0.001) achieved a
 EXP:[16] embed_dim=1, n_conv=1, conv_dims=(4, 4, 4), l=(0.0001, 0.0001) achieved accuracy:45.489443378119
 EXP:[17] embed_dim=1, n_conv=2, conv_dims=(1, 1, 1), l=(0.001, 0.0001) achieved accuracy:48.17658349328215
 EXP:[18] embed_dim=1, n_conv=2, conv_dims=(1, 1, 1), l=(0.0001, 0.001) achieved accuracy:46.449136276391556
+EXP:[19] embed_dim=1, n_conv=2, conv_dims=(1, 1, 1), l=(0.001, 0.001) achieved accuracy:49.1362763915547
+EXP:[20] embed_dim=1, n_conv=2, conv_dims=(1, 1, 1), l=(0.0001, 0.0001) achieved accuracy:47.60076775431862
+EXP:[21] embed_dim=1, n_conv=2, conv_dims=(2, 2, 2), l=(0.001, 0.0001) achieved accuracy:48.36852207293666
+EXP:[22] embed_dim=1, n_conv=2, conv_dims=(2, 2, 2), l=(0.0001, 0.001) achieved accuracy:47.02495201535508
+EXP:[23] embed_dim=1, n_conv=2, conv_dims=(2, 2, 2), l=(0.001, 0.001) achieved accuracy:45.489443378119
+EXP:[24] embed_dim=1, n_conv=2, conv_dims=(2, 2, 2), l=(0.0001, 0.0001) achieved accuracy:46.257197696737045

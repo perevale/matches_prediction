@@ -68,7 +68,7 @@ def run_gnn_model(filename, lr=(0.001, 0.0001), exp_num=0, **kwargs):
 def grid_search(filename, outfile):
     embed_dim = [1, 2, 3, 5, 10]
     n_conv = [1, 2, 3]
-    dims = [(1, 1, 1), (2, 2, 2), (2, 4, 2), (4, 4, 4)]
+    dims = [(1, 1, 1), (2, 2, 2), (4, 4, 4), (8, 8, 8)]
     lr = [(0.001, 0.0001), (0.0001, 0.001), (0.001, 0.001), (0.0001, 0.0001)]
     exp_counter = 0
     for e in embed_dim:
@@ -76,7 +76,7 @@ def grid_search(filename, outfile):
             for d in dims:
                 for l in lr:
                     exp_counter += 1
-                    if exp_counter < 12:
+                    if exp_counter < 25:
                         continue
                     with open(outfile, "a+") as f:
                         acc = run_gnn_model(filename,l, exp_counter, embed_dim=e, n_conv=n, conv_dims=d)

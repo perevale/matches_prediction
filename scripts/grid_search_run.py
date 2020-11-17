@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 from main import run_gnn_model
 from utils import load_from_pickle

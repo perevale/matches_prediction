@@ -11,8 +11,8 @@ DIR = "/home/perevale/thesis/parameters"
 
 embed_dim = [1, 2, 3, 5, 10]
 n_conv = [1, 2, 3]
-dims = [(1, 1, 1), (2, 2, 2), (2, 4, 2), (4, 4, 4)]
-lr = [(0.001, 0.0001), (0.0001, 0.001), (0.001, 0.001), (0.0001, 0.0001)]
+dims = [(1, 1, 1), (2, 2, 2), (4, 4, 4), (8, 8, 8)]
+lr = [(0.001, 0.0001)]
 exp_counter = 1
 for e in embed_dim:
     for n in n_conv:
