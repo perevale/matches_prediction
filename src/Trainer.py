@@ -257,17 +257,8 @@ def train_flat_model(data, model, epochs=100, lr=0.001, dataset="train", print_i
             optimizer.step()
 
             # print statistics
-            data.running_accuracy.append(test_gnn_model(data, model, "val"))
+            data.running_accuracy.append(test_flat_model(data, model, "val"))
             data.running_loss.append(loss_value)
-
-    # if print_info:
-    #         print('[%d] loss: %.3f '
-    #               # 'accuracy: %.3f'
-    #               %
-    #               (epoch, running_loss / 100
-    #                # , test_model(data, model)
-    #                ))
-    #         running_loss = 0.0
 
     print('Finished Training')
     print('Accuracy of the network on the %s data: %.5f %%' % ("training",
