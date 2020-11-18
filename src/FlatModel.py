@@ -1,6 +1,7 @@
 import torch
 from torch.nn import Embedding, Sequential as Seq, Linear, LeakyReLU, SELU, Softmax, Dropout, BatchNorm1d
 import torch.nn.functional as F
+from torch.nn import LogSoftmax
 
 
 class FlatModel(torch.nn.Module):
@@ -22,6 +23,7 @@ class FlatModel(torch.nn.Module):
         self.hidden_3 = Linear(16, 6)
         self.hidden_4 = Linear(64, 6)
         self.out = Linear(6, result)
+        self.out_act = LogSoftmax(dim=0)
         self.drop = Dropout(p=0.2)
 
     def forward(self, team_home, team_away):
@@ -43,6 +45,6 @@ class FlatModel(torch.nn.Module):
         # team_away = team_away.view(-1,1)
         # cat = torch.cat((team_home, team_away), -1)
         # x = cat.view(-1, 6)
-        # x = F.log_softmax(self.out(x), dim=1)
         x = self.out(x)
+        x = self.out_act(x)
         return x

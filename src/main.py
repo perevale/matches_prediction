@@ -24,37 +24,37 @@ def common_loading(filename):
     dt.print_metadata(dt.data, "whole")
     return dt
 
-def run_flat_model(filename):
-    dt = common_loading(filename)
-    # -----------Flat model---------------------
-    model = FlatModel(dt.n_teams, 3)
-    home, away, label = dt.get_train_data()
-    train_flat_model(zip(home, away, label), model)
-    PATH = './net.pth'
-    torch.save(model.state_dict(), PATH)
-    # net = Net()
-    # net.load_state_dict(torch.load(PATH))
-    # home, away, label = dt.get_test_data()
-    # test_model(zip(home, away, label), model)
-    # correct_by_class(zip(home, away, label), model)
-    # pass
+
+def run_flat_model(filename,dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **kwargs):
+    dataset = PRDataset(filename=filename)
+    data_list = dataset.process()
+    epochs = [100, 100]
+    for i, data in enumerate(data_list):
+        model = FlatModel(data.n_teams, **kwargs)
+        train_flat_model(data, model, epochs=epochs[0], lr=lr[0])
+        train_flat_model(data, model, epochs=epochs[1], dataset="val", lr=lr[1])
+        test_acc = test_flat_model(data, model, "test")
+        file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
+        data_to_save = {"data": data, "model": model, "epochs": epochs}
+        save_to_pickle(file, data_to_save)
+        visualize_acc_loss(data, epochs, outfile.format(images_dir.format(dir_prefix), i, exp_num, "png"))
+        return test_acc
 
 
 def run_pr_model(filename):
     # ----------PageRank------------------------
-    dataset = PRDataset(root='../', filename=filename)
-    dataset.process()
-    batch_size = 1
-    train_loader = DataLoader(dataset, batch_size=batch_size)
-    model = PageRank()
-    train_pr(train_loader, model)
+    dataset = PRDataset(filename=filename)
+    data_list = dataset.process()
+    for i, data in enumerate(data_list):
+        model = PageRank()
+        train_pr(data, model)
 
 
 def run_gnn_model(filename,dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **kwargs):
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
-    epochs = [500,300]
+    epochs = [500, 300]
     for i, data in enumerate(data_list):
         model = GNNModel(data.n_teams, **kwargs)
         train_gnn_model(data, model, epochs=epochs[0], lr=lr[0])
@@ -91,7 +91,7 @@ def grid_search(filename, outfile):
 
 
 if __name__ == '__main__':
-    model_id = 2  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn
+    model_id = 0  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
