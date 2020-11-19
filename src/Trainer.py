@@ -24,6 +24,7 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, dataset="train", pr
                              matches.iloc[i]['lwd']
         test_function(data, model, home, away, result)
         train_function(data, matches.head(i+1), model, epochs, lr)
+        print("T:{}, loss:{}, prediction eval:{}".format(i, data.running_loss[-1], data.running_accuracy[-1]))
 
 
 def train_cont_gnn(data, matches, model, epochs=100, lr=0.001):
@@ -46,7 +47,7 @@ def train_cont_gnn(data, matches, model, epochs=100, lr=0.001):
                 optimizer.step()
                 loss_value += loss.item()
 
-            update_edge_time(data, home, away)
+            update_edge_time(data, home, away, result)
             update_edge_index(data, home, away, result)
             calculate_edge_weight(data)
             data.curr_time += 1
@@ -109,7 +110,7 @@ def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_in
 
                 loss_value += loss.item()
 
-            update_edge_time(data, home, away)
+            update_edge_time(data, home, away, result)
             # update_win_lose_network(data.win_lose_network, matches.iloc[j])
             update_edge_index(data, home, away, result)
             calculate_edge_weight(data)
