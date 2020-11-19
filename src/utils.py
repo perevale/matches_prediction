@@ -6,6 +6,7 @@ import numpy.ma as ma
 from matplotlib.lines import Line2D
 import math
 import pickle
+from itertools import permutations
 
 
 def update_win_lose_network(win_lose_network, record):
@@ -20,6 +21,24 @@ def update_win_lose_network(win_lose_network, record):
     # won = 1, lost = 0
     win_lose_network[winning_team, 1, losing_team] = 1  # winning team won over losing team
     win_lose_network[losing_team, 0, winning_team] = 1  # losing team lost to the winning team
+
+
+def create_test_edge_index(data):
+    data.edge_index = torch.tensor(list(permutations(list(range(data.n_teams)), 2)), dtype=torch.long).t().contiguous()
+
+
+def update_edge_index(data, home, away, result):
+    edges = data.edge_index.t()
+    winning_team, losing_team = home, away
+
+    if result == 0:
+        winning_team, losing_team = away, home
+    edges = torch.cat([edges, torch.tensor([[winning_team, losing_team]])], dim=0)
+
+    if result == 1:
+        edges = torch.cat([edges, torch.tensor([[losing_team, winning_team]])], dim=0)
+
+    data.edge_index = torch.unique(edges, dim=0).t()
 
 
 def create_edge_index(data, home, away, result):
@@ -40,6 +59,9 @@ def create_edge_index(data, home, away, result):
         losing_team = home
     elif result == 1:
         data.edge_index = torch.tensor([[home, away], [away,home]])
+        data.edge_index = get_neighbour_edge_index(data)
+        if len(data.edge_index) == 0:
+            data.edge_index = torch.tensor([[home, away], [away,home]])
         return
 
     from_nodes = np.append(np.full((np.count_nonzero(data.win_lose_network[winning_team,0] == 1),), winning_team), np.array([losing_team]).reshape((1, -1)))
@@ -96,7 +118,7 @@ def update_edge_time(data, home, away):
 
 
 def calculate_edge_weight(data, time_weighting="linear"):
-    if len(data.edge_index)>0:
+    if len(data.edge_index) > 0:
         from_nodes = data.edge_index[0].numpy()
         to_nodes = data.edge_index[1].numpy()
 
@@ -116,21 +138,22 @@ def visualize_acc_loss(data, epochs, file_to_save):
     colors = ['bisque', 'powderblue', 'lime']
     epochs_total = epochs[0]+epochs[1]
 
-    legend_elements_0 = [Line2D([0], [0], label='Accuracy on validation data'),
+    fig, ax = plt.subplots(nrows=1, ncols=2,figsize=(10, 5))
+
+    legend_elements_1 = [Line2D([0], [0], label='Accuracy on validation data'),
                        Line2D([0], [0], marker='o', color='w', label=area_labels[0],
                               markerfacecolor=colors[0], markersize=15),
                        Line2D([0], [0], marker='o', color='w', label=area_labels[1],
                               markerfacecolor=colors[1], markersize=15),
                        Line2D([0], [0], color=colors[2],label='Accuracy on test data'),
                        ]
-    fig, ax = plt.subplots(nrows=1, ncols=2,figsize=(10, 5))
     # plt.xticks(ticks=list(range(0, epochs_total,math.ceil(epochs_total/10) )), labels=list(range(1, epochs_total+1,math.ceil(epochs_total/10 ))))
     ax[0].axvspan(0, epochs[0]-1, color=colors[0], alpha=0.5, lw=0)
     ax[0].axvspan(epochs[0]-1, epochs_total-1, color=colors[1], alpha=0.5, lw=0)
     ax[0].plot(data.running_accuracy)
     ax[0].hlines(data.test_accuracy, 0, epochs_total-1, colors=colors[2])
-    ax[0].legend(bbox_to_anchor=(0.2, -0.4), loc='lower left',
-           ncol=1, borderaxespad=-0.3,handles=legend_elements_0)
+    lg_0 = ax[0].legend(bbox_to_anchor=(0.2, -0.55), loc='lower left',
+           ncol=1, borderaxespad=-0.3,handles=legend_elements_1)
     ax[0].title.set_text('Accuracy')
     # ax[0].set_xticks(list(range(0, epochs_total,math.ceil(epochs_total/10) )))
     # ax[0].set_xtickslabels(list(range(1, epochs_total+1,math.ceil(epochs_total/10 ))))
@@ -140,7 +163,7 @@ def visualize_acc_loss(data, epochs, file_to_save):
     plt.xlabel("epochs")
     plt.ylabel("accuracy [%]")
 
-    legend_elements_0 = [Line2D([0], [0], label='Loss on validation data'),
+    legend_elements_1 = [Line2D([0], [0], label='Loss on validation data'),
                        Line2D([0], [0], marker='o', color='w', label=area_labels[0],
                               markerfacecolor=colors[0], markersize=15),
                        Line2D([0], [0], marker='o', color='w', label=area_labels[1],
@@ -149,8 +172,8 @@ def visualize_acc_loss(data, epochs, file_to_save):
     ax[1].axvspan(0, epochs[0]-1, color=colors[0], alpha=0.5, lw=0)
     ax[1].axvspan(epochs[0]-1, epochs_total-1, color=colors[1], alpha=0.5, lw=0)
     ax[1].plot(data.running_loss)
-    ax[1].legend(bbox_to_anchor=(0.8, -0.33), loc='lower right',
-           ncol=1, borderaxespad=-0.3,handles=legend_elements_0)
+    lg_1 = ax[1].legend(bbox_to_anchor=(0.8, -0.5), loc='lower right',
+           ncol=1, borderaxespad=-0.3,handles=legend_elements_1)
     ax[1].title.set_text('Loss')
     plt.sca(ax[1])
     ticks, ticks_labels = create_ticks(epochs)
@@ -159,7 +182,10 @@ def visualize_acc_loss(data, epochs, file_to_save):
     plt.ylabel("loss")
 
     fig.tight_layout()
-    plt.savefig(file_to_save)
+    plt.savefig(file_to_save,
+                bbox_extra_artists=(lg_0,lg_1), format='png',
+            bbox_inches='tight'
+                )
     # plt.show()
     plt.clf()
     plt.cla()

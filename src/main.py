@@ -2,16 +2,19 @@ import torch
 from DataTransformer import DataTransformer
 from Dataset import Dataset
 from FlatModel import FlatModel
-from Trainer import train_gnn_model, test_gnn_model, correct_by_class, evaluate, train_pr, train_flat_model, test_flat_model
+from Trainer import train_gnn_model, test_gnn_model, correct_by_class, evaluate, train_pr, train_flat_model, \
+    test_flat_model
 from torch_geometric.data import DataLoader
 from GNNModel import GNNModel
 from PRDataset import PRDataset
 from PageRank import PageRank
 from utils import visualize_acc_loss, save_to_pickle, load_from_pickle
 import pickle
+
 # sacred
 # from sacred import Experiment
 # from sacred.observers import FileStorageObserver
+dir_prefix = "../"
 outfile = "{}data_{}_model_{}.{}"
 pickle_dir = "{}data/models/"
 images_dir = "{}data/img/"
@@ -25,7 +28,7 @@ def common_loading(filename):
     return dt
 
 
-def run_flat_model(filename,dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **kwargs):
+def run_flat_model(filename, dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **kwargs):
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
     epochs = [100, 100]
@@ -50,7 +53,7 @@ def run_pr_model(filename):
         train_pr(data, model)
 
 
-def run_gnn_model(filename,dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **kwargs):
+def run_gnn_model(filename, dir_prefix="../", lr=(0.01, 0.0001), exp_num=0, **kwargs):
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
@@ -82,21 +85,20 @@ def grid_search(filename, outfile):
                     if exp_counter < 25:
                         continue
                     with open(outfile, "a+") as f:
-                        acc = run_gnn_model(filename,l, exp_counter, embed_dim=e, n_conv=n, conv_dims=d)
+                        acc = run_gnn_model(filename, l, exp_counter, embed_dim=e, n_conv=n, conv_dims=d)
                         f.write("EXP:[{}] embed_dim={}, n_conv={}, conv_dims={}, l={} achieved accuracy:{}\n".
                                 format(exp_counter, e, n, d, l, acc))
                         print("EXP:[{}] embed_dim={}, n_conv={}, conv_dims={}, l={} achieved accuracy:{}\n".
-                                format(exp_counter, e, n, d, l, acc))
-
+                              format(exp_counter, e, n, d, l, acc))
 
 
 if __name__ == '__main__':
-    model_id = 0  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn
+    model_id = 2  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
-    # filename = "../data/mini_data.csv"
-    filename = "../data/GER1_all.csv"
+    filename = "../data/mini_data.csv"
+    # filename = "../data/GER1_all.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"
@@ -112,6 +114,7 @@ if __name__ == '__main__':
     elif model_id == 4:
         grid_search(filename, grid_search_file)
     else:
-        file = outfile.format(pickle_dir, 0,exp_num, "pickle")
+        file = outfile.format(pickle_dir.format(dir_prefix), 0, exp_num, "pickle")
         data = load_from_pickle(file)
-        visualize_acc_loss(data["data"], data["epochs"], outfile.format(images_dir, 0, exp_num,"png"))
+        visualize_acc_loss(data["data"], data["epochs"],
+                           outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png"))

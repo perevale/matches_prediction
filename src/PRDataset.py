@@ -46,7 +46,8 @@ class PRDataset():
 
             data = Data(
                 x=x,
-                # edge_index=edge_index.t().contiguous(),
+                edge_index=torch.tensor([]).reshape(2,-1).long(),
+                edge_weight=torch.tensor([]),
                 matches=data_train,
                 n_teams=n_teams,
                 win_lose_network=win_lose_network,

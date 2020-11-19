@@ -21,7 +21,7 @@ for e in embed_dim:
                 parameters = {"embed_dim": e, "n_conv": n, "conv_dims": d, "lr": l}
                 filename = DIR+"/parameters_{}.pickle".format(exp_counter)
                 save_to_pickle(filename, parameters)
-                command = "sbatch train.batch {} {}".format(exp_counter, filename)
+                command = "sbatch -o out/slurm-%j.out train.batch {} {} ".format(exp_counter, filename)
                 process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
                 output, error = process.communicate()
 
