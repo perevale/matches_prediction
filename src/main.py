@@ -3,7 +3,7 @@ from DataTransformer import DataTransformer
 from Dataset import Dataset
 from FlatModel import FlatModel
 from Trainer import train_gnn_model, test_gnn_model, correct_by_class, evaluate, train_pr, train_flat_model, \
-    test_flat_model
+    test_flat_model, continuous_evaluation
 from torch_geometric.data import DataLoader
 from GNNModel import GNNModel
 from PRDataset import PRDataset
@@ -53,7 +53,22 @@ def run_pr_model(filename):
         train_pr(data, model)
 
 
-def run_gnn_model(filename, dir_prefix="../", lr=(0.01, 0.0001), exp_num=0, **kwargs):
+def run_gnn_cont(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **kwargs):
+    # ----------GNN------------------------------
+    dataset = PRDataset(filename=filename)
+    data_list = dataset.process()
+    epochs = [200]
+    for i, data in enumerate(data_list):
+        model = GNNModel(data.n_teams, **kwargs)
+        continuous_evaluation(data, model, epochs[0])
+        test_acc = test_gnn_model(data, model, "test")
+        print("accuracy on testing data is: {}".format(test_acc))
+        file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
+        data_to_save = {"data": data, "model": model, "epochs": epochs}
+        save_to_pickle(file, data_to_save)
+
+
+def run_gnn_model(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **kwargs):
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
@@ -93,7 +108,7 @@ def grid_search(filename, outfile):
 
 
 if __name__ == '__main__':
-    model_id = 2  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn
+    model_id = 5  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
@@ -113,6 +128,8 @@ if __name__ == '__main__':
         run_gnn_model(filename)
     elif model_id == 4:
         grid_search(filename, grid_search_file)
+    elif model_id == 5:
+        run_gnn_cont(filename)
     else:
         file = outfile.format(pickle_dir.format(dir_prefix), 0, exp_num, "pickle")
         data = load_from_pickle(file)

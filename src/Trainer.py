@@ -17,7 +17,7 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, dataset="train", pr
         return
 
     matches = data.matches.append(data.data_val, ignore_index=True)
-    matches = matches.append(data.data_test, ignore_index=True)
+    # matches = matches.append(data.data_test, ignore_index=True)
 
     for i in range(matches.shape[0]):
         home, away, result = matches.iloc[i]['home_team'], matches.iloc[i]['away_team'], \
@@ -25,6 +25,8 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, dataset="train", pr
         test_function(data, model, home, away, result)
         train_function(data, matches.head(i+1), model, epochs, lr)
         print("T:{}, loss:{}, prediction eval:{}".format(i, data.running_loss[-1], data.running_accuracy[-1]))
+    acc = sum(data.running_accuracy)/len(data.running_accuracy)
+    print(acc)
 
 
 def train_cont_gnn(data, matches, model, epochs=100, lr=0.001):
@@ -34,18 +36,15 @@ def train_cont_gnn(data, matches, model, epochs=100, lr=0.001):
     for epoch in range(epochs):
         loss_value = 0.0
         optimizer.zero_grad()
-        labels = torch.nn.functional.one_hot(torch.tensor(np.int64(matches['lwd'])).reshape(-1, 1),
-                                             num_classes=len(np.unique(np.int64(matches['lwd']))))
         for j in range(matches.shape[0]):
             home, away, result = matches.iloc[j]['home_team'], matches.iloc[j]['away_team'], \
                                  matches.iloc[j]['lwd']
-            label = labels[j]
-            if len(data.edge_index) > 0:
-                outputs = model(data, home, away)
-                loss = criterion(outputs, label.to(torch.float))
-                loss.backward()
-                optimizer.step()
-                loss_value += loss.item()
+            label = torch.zeros(1, target_dim).scatter_(1, torch.tensor([[result]]), 1)  # one-hot label for loss
+            outputs = model(data, home, away)
+            loss = criterion(outputs, label.to(torch.float))
+            loss.backward()
+            optimizer.step()
+            loss_value += loss.item()
 
             update_edge_time(data, home, away, result)
             update_edge_index(data, home, away, result)
@@ -53,21 +52,20 @@ def train_cont_gnn(data, matches, model, epochs=100, lr=0.001):
             data.curr_time += 1
 
         data.curr_time -= matches.shape[0]
-        running_loss.append(loss_value)
+        running_loss.append(loss_value/matches.shape[0])
         if epoch % 50 == 49:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.8
-    data.running_loss.append(sum(running_loss)/len(running_loss))
+    data.running_loss.append(sum(running_loss))
 
 
 def test_cont_gnn(data, model, home, away, label):
-    if len(data.edge_index) > 0:
         with torch.no_grad():
             outputs = model(data, home, away)
 
             _, predicted = torch.max(outputs.data, 1)
             data.running_accuracy.append(int((predicted == label).sum().item()))
-    else: data.running_accuracy.append(int(False))
+
 
 def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_info=True):
     matches = data.matches
