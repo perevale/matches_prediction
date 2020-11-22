@@ -29,17 +29,19 @@ def create_test_edge_index(data):
 
 
 def update_edge_index(data, home, away, result):
-    edges = data.edge_index.t()
-    winning_team, losing_team = home, away
+    # edges = data.edge_index.t()
+    # winning_team, losing_team = home, away
+    #
+    # if result == 0:
+    #     winning_team, losing_team = away, home
+    # edges = torch.cat([edges, torch.tensor([[winning_team, losing_team]])], dim=0)
+    #
+    # if result == 1:
+    #     edges = torch.cat([edges, torch.tensor([[losing_team, winning_team]])], dim=0)
+    #
+    # data.edge_index = torch.unique(edges, dim=0).t()
 
-    if result == 0:
-        winning_team, losing_team = away, home
-    edges = torch.cat([edges, torch.tensor([[winning_team, losing_team]])], dim=0)
-
-    if result == 1:
-        edges = torch.cat([edges, torch.tensor([[losing_team, winning_team]])], dim=0)
-
-    data.edge_index = torch.unique(edges, dim=0).t()
+    data.edge_index = torch.tensor(np.where(~np.isnan(data.edge_time)))
 
 
 def create_edge_index(data, home, away, result):
@@ -122,10 +124,10 @@ def update_edge_time(data, home, away, result):
     if result == 0:
         winning_team = away
         losing_team = home
-    data.edge_time[losing_team][winning_team] = int(data.curr_time)
+    data.edge_time[losing_team, winning_team] = int(data.curr_time)
 
     if result == 1:
-        data.edge_time[losing_team][winning_team] = int(data.curr_time)
+        data.edge_time[losing_team, winning_team] = int(data.curr_time)
 
 
 def calculate_edge_weight(data, time_weighting="linear"):

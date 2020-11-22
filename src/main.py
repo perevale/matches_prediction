@@ -112,8 +112,8 @@ if __name__ == '__main__':
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
-    filename = "../data/mini_data.csv"
-    # filename = "../data/GER1_all.csv"
+    # filename = "../data/mini_data.csv"
+    filename = "../data/GER1_all.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"
