@@ -8,7 +8,7 @@ from utils import update_win_lose_network, create_edge_index, update_node_time, 
 target_dim = 3
 
 
-def continuous_evaluation(data, model, epochs=100, lr=0.001, dataset="train", print_info=True, model_name="gnn"):
+def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, model_name="gnn"):
     print("Continuous evaluation")
     train_function = train_cont_gnn
     test_function = test_cont_gnn
@@ -23,7 +23,7 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, dataset="train", pr
         home, away, result = matches.iloc[i]['home_team'], matches.iloc[i]['away_team'], \
                              matches.iloc[i]['lwd']
         test_function(data, model, home, away, result)
-        train_function(data, matches.head(i+1), model, epochs, lr)
+        train_function(data, matches.head(i+1), model, epochs, lr*(1-lr_discount)**int(i/50))
         print("T:{}, loss:{}, prediction eval:{}".format(i, data.running_loss[-1], data.running_accuracy[-1]))
     acc = sum(data.running_accuracy)/len(data.running_accuracy)
     print(acc)
@@ -52,11 +52,11 @@ def train_cont_gnn(data, matches, model, epochs=100, lr=0.001):
             data.curr_time += 1
 
         data.curr_time -= matches.shape[0]
-        running_loss.append(loss_value/matches.shape[0])
+        running_loss.append(loss_value)
         if epoch % 50 == 49:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.8
-    data.running_loss.append(sum(running_loss))
+    data.running_loss.append(sum(running_loss)/matches.shape[0])
 
 
 def test_cont_gnn(data, model, home, away, label):
