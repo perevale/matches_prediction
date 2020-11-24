@@ -3,7 +3,7 @@ from DataTransformer import DataTransformer
 from Dataset import Dataset
 from FlatModel import FlatModel
 from Trainer import train_gnn_model, test_gnn_model, correct_by_class, evaluate, train_pr, train_flat_model, \
-    test_flat_model, continuous_evaluation
+    test_flat_model, continuous_evaluation, test_cont_gnn
 from torch_geometric.data import DataLoader
 from GNNModel import GNNModel
 from PRDataset import PRDataset
@@ -57,11 +57,11 @@ def run_gnn_cont(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
-    epochs = [5]
+    epochs = [20]
     for i, data in enumerate(data_list):
         model = GNNModel(data.n_teams, **kwargs)
-        continuous_evaluation(data, model, epochs[0])
-        test_acc = test_gnn_model(data, model, "test")
+        continuous_evaluation(data, model, epochs[0], batch_size=9)
+        test_acc = test_cont_gnn(data, model, data.data_test, "test")
         print("accuracy on testing data is: {}".format(test_acc))
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
     # filename = "../data/mini_data.csv"
-    filename = "../data/GER1_all.csv"
+    # filename = "../data/GER1_all.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"

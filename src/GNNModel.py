@@ -43,6 +43,7 @@ class GNNModel(torch.nn.Module):
 
     def forward(self, data, home, away, mode="train"):
         edge_index, edge_weight = data.edge_index, data.edge_weight
+        home, away = list(home), list(away)
         x = torch.tensor(list(range(data.n_teams)))
         x = self.item_embedding(x).reshape(-1, self.embed_dim)
 

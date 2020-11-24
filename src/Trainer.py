@@ -4,11 +4,12 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
 from utils import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight, update_edge_time, calculate_edge_weight, create_test_edge_index, update_edge_index
+import math
 
 target_dim = 3
 
 
-def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, model_name="gnn"):
+def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, model_name="gnn", batch_size=9):
     print("Continuous evaluation")
     train_function = train_cont_gnn
     test_function = test_cont_gnn
@@ -19,27 +20,26 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, mo
     matches = data.matches.append(data.data_val, ignore_index=True)
     # matches = matches.append(data.data_test, ignore_index=True)
 
-    for i in range(matches.shape[0]):
-        home, away, result = matches.iloc[i]['home_team'], matches.iloc[i]['away_team'], \
-                             matches.iloc[i]['lwd']
-        test_function(data, model, home, away, result)
-        train_function(data, matches.head(i+1), model, epochs, lr*(1-lr_discount)**int(i/50))
-        print("T:{}, loss:{}, prediction eval:{}".format(i, data.running_loss[-1], data.running_accuracy[-1]))
-    acc = sum(data.running_accuracy)/len(data.running_accuracy)
+    for i in range(0,matches.shape[0], batch_size):
+        test_function(data, model, matches.iloc[i:i+batch_size])
+        train_function(data, matches.head(i+batch_size), model, epochs, lr*(1-lr_discount)**int(i/batch_size/50), batch_size)
+        print("T:{}, loss:{}, prediction eval:{}".format(int(i/batch_size), data.running_loss[-1], data.running_accuracy[-1]))
+    acc = float(sum(data.running_accuracy))/matches.shape[0]
     print(acc)
 
 
-def train_cont_gnn(data, matches, model, epochs=100, lr=0.001):
+def train_cont_gnn(data, matches, model, epochs=100, lr=0.001, batch_size=9):
     criterion = nn.PoissonNLLLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     running_loss = []
     for epoch in range(epochs):
         loss_value = 0.0
         optimizer.zero_grad()
-        for j in range(matches.shape[0]):
-            home, away, result = matches.iloc[j]['home_team'], matches.iloc[j]['away_team'], \
-                                 matches.iloc[j]['lwd']
-            label = torch.zeros(1, target_dim).scatter_(1, torch.tensor([[result]]), 1)  # one-hot label for loss
+        for j in range(0,matches.shape[0], batch_size):
+            home, away, result = matches.iloc[j:j+batch_size]['home_team'].values.astype('int64'), \
+                                 matches.iloc[j:j+batch_size]['away_team'].values.astype('int64'), \
+                                 matches.iloc[j:j+batch_size]['lwd'].values.astype('int64').reshape(-1,1)
+            label = torch.zeros(result.shape[0], target_dim).scatter_(1, torch.tensor(result), 1)  # one-hot label for loss
             outputs = model(data, home, away)
             loss = criterion(outputs, label.to(torch.float))
             loss.backward()
@@ -47,11 +47,11 @@ def train_cont_gnn(data, matches, model, epochs=100, lr=0.001):
             loss_value += loss.item()
 
             update_edge_time(data, home, away, result)
-            update_edge_index(data, home, away, result)
+            update_edge_index(data)
             calculate_edge_weight(data)
             data.curr_time += 1
 
-        data.curr_time -= matches.shape[0]
+        data.curr_time -= math.ceil(matches.shape[0]/batch_size)
         running_loss.append(loss_value)
         if epoch % 50 == 49:
             for param_group in optimizer.param_groups:
@@ -59,12 +59,18 @@ def train_cont_gnn(data, matches, model, epochs=100, lr=0.001):
     data.running_loss.append(sum(running_loss)/matches.shape[0])
 
 
-def test_cont_gnn(data, model, home, away, label):
-        with torch.no_grad():
-            outputs = model(data, home, away)
+def test_cont_gnn(data, model, matches, mode="val"):
+    home, away, label = matches['home_team'].values.astype('int64'), \
+                         matches['away_team'].values.astype('int64'), \
+                         matches['lwd'].values.astype('int64').reshape(-1, 1)
+    with torch.no_grad():
+        outputs = model(data, home, away)
 
-            _, predicted = torch.max(outputs.data, 1)
-            data.running_accuracy.append(int((predicted == label).sum().item()))
+        _, predicted = torch.max(outputs.data, 1)
+        correct = int((predicted.numpy() == label.reshape(-1,)).sum().item())
+        if mode == "test":
+            return float(correct)/matches.shape[0]
+        data.running_accuracy.append(correct)
 
 
 def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_info=True):

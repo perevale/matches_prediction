@@ -28,19 +28,7 @@ def create_test_edge_index(data):
     data.edge_index = torch.tensor(list(permutations(list(range(data.n_teams)), 2)), dtype=torch.long).t().contiguous()
 
 
-def update_edge_index(data, home, away, result):
-    # edges = data.edge_index.t()
-    # winning_team, losing_team = home, away
-    #
-    # if result == 0:
-    #     winning_team, losing_team = away, home
-    # edges = torch.cat([edges, torch.tensor([[winning_team, losing_team]])], dim=0)
-    #
-    # if result == 1:
-    #     edges = torch.cat([edges, torch.tensor([[losing_team, winning_team]])], dim=0)
-    #
-    # data.edge_index = torch.unique(edges, dim=0).t()
-
+def update_edge_index(data):
     data.edge_index = torch.tensor(np.where(~np.isnan(data.edge_time)))
 
 
@@ -110,8 +98,8 @@ def get_neighbour_edge_index(data, self_loops=False):
 
 
 def update_node_time(data, curr_time):
-    indeces = data.edge_index[:][1].numpy()
-    data.node_time[indeces] = curr_time
+    indices = data.edge_index[:][1].numpy()
+    data.node_time[indices] = curr_time
 
 
 def calculate_node_weight(data, curr_time):
@@ -119,15 +107,22 @@ def calculate_node_weight(data, curr_time):
 
 
 def update_edge_time(data, home, away, result):
-    winning_team = home
-    losing_team = away
-    if result == 0:
-        winning_team = away
-        losing_team = home
-    data.edge_time[losing_team, winning_team] = int(data.curr_time)
+    winning_team = np.array([]).astype('int64')
+    losing_team = np.array([]).astype('int64')
 
-    if result == 1:
-        data.edge_time[losing_team, winning_team] = int(data.curr_time)
+    # home won
+    np.append(winning_team, home[np.where(result == 2)[0]])
+    np.append(losing_team, away[np.where(result == 2)[0]])
+    # away won
+    np.append(winning_team, away[np.where(result == 0)[0]])
+    np.append(losing_team, home[np.where(result == 0)[0]])
+    # draw
+    np.append(winning_team, home[np.where(result == 1)[0]])
+    np.append(winning_team, away[np.where(result == 1)[0]])
+    np.append(losing_team, home[np.where(result == 1)[0]])
+    np.append(losing_team, away[np.where(result == 1)[0]])
+
+    data.edge_time[losing_team, winning_team] = int(data.curr_time)
 
 
 def calculate_edge_weight(data, time_weighting="linear"):
