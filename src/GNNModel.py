@@ -42,11 +42,17 @@ class GNNModel(torch.nn.Module):
         x = torch.tensor(list(range(data.n_teams)))
         x = self.item_embedding(x).reshape(-1, self.embed_dim)
 
-        x = self.conv_layers[0](x, edge_index, edge_weight)
+        if len(edge_weight) > 0:
+            x = self.conv_layers[0](x, edge_index, edge_weight )
+        else:
+            x = self.conv_layers[0](x, edge_index)
         x = self.activation(x)
 
         for i in range(self.n_conv - 1):
+            if len(edge_weight) > 0:
                     x = self.activation(self.conv_layers[i + 1](x, data.edge_index, edge_weight))
+            else:
+                x = self.activation(self.conv_layers[i + 1](x, data.edge_index))
 
         x = torch.cat([x[home], x[away]], dim=-1)
 
