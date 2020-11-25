@@ -14,7 +14,7 @@ n_conv = [1, 2, 3]
 dims = [(1, 1, 1, 1), (4, 4, 4, 4), (8, 8, 8, 8)]
 activations = ['relu', 'tanh','leaky']
 lr = [(0.0001, 0.0001)]
-exp_counter = 1
+exp_counter = 1001
 for e in embed_dim:
     for n in n_conv:
         for a in activations:
