@@ -1,6 +1,6 @@
 import torch
 from torch.nn import LogSoftmax, ReLU, Tanh, LeakyReLU
-from torch_geometric.nn import GCNConv, AGNNConv
+from torch_geometric.nn import AGNNConv
 
 from utils import calculate_edge_weight, get_neighbour_edge_index
 
