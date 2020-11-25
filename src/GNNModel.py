@@ -1,6 +1,6 @@
 import torch
 from torch.nn import LogSoftmax, ReLU, Tanh, LeakyReLU
-from torch_geometric.nn import AGNNConv
+from torch_geometric.nn import GCNConv
 
 target_dim = 3
 
@@ -43,7 +43,7 @@ class GNNModel(torch.nn.Module):
         x = torch.tensor(list(range(data.n_teams)))
         x = self.item_embedding(x).reshape(-1, self.embed_dim)
 
-        if len(edge_weight)>0:
+        if len(edge_weight) > 0:
             x = self.conv_layers[0](x, edge_index, edge_weight )
         else:
             x = self.conv_layers[0](x, edge_index)
