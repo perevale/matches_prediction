@@ -1,6 +1,6 @@
 import torch
 from torch.nn import LogSoftmax, ReLU, Tanh, LeakyReLU
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GCNConv, ARMAConv, APPNP, SAGEConv, AGNNConv
 
 from utils import calculate_edge_weight, get_neighbour_edge_index
 
@@ -14,7 +14,7 @@ activations = {
 
 
 class GNNModel(torch.nn.Module):
-    def __init__(self, num_teams, embed_dim=1, n_conv=1, conv_dims=(1, 1, 1), n_dense=3, dense_dims=(6, 16),
+    def __init__(self, num_teams, embed_dim=2, n_conv=2, conv_dims=(1, 1, 1), n_dense=3, dense_dims=(6, 16),
                  act_f='leaky', **kwargs):
         super(GNNModel, self).__init__()
         self.embed_dim = embed_dim
@@ -29,12 +29,17 @@ class GNNModel(torch.nn.Module):
         self.item_embedding = torch.nn.Embedding(num_embeddings=num_teams, embedding_dim=embed_dim)
 
         self.conv_layers = []
-        self.conv_layers.append(GCNConv(self.embed_dim, self.conv_dims[0]))
+
+        self.conv_layers.append(AGNNConv())
+        # self.conv_layers.append(SAGEConv(self.embed_dim, self.conv_dims[0]))
+        # self.conv_layers.append(APPNP(K=10, alpha=0.1 ))
         for i in range(n_conv - 1):
-            self.conv_layers.append(GCNConv(conv_dims[i], conv_dims[i + 1]))
+            self.conv_layers.append(AGNNConv())
+            # self.conv_layers.append(SAGEConv(conv_dims[i], conv_dims[i + 1]))
+            # self.conv_layers.append(APPNP(K=10, alpha=0.1))
 
         self.lin_layers = []
-        self.lin_layers.append(torch.nn.Linear(conv_dims[n_conv - 1] * 2, dense_dims[0]))
+        self.lin_layers.append(torch.nn.Linear(embed_dim * 2, dense_dims[0]))
         for i in range(n_dense - 2):
             self.lin_layers.append(torch.nn.Linear(dense_dims[i], dense_dims[i + 1]))
         self.lin_layers.append(torch.nn.Linear(dense_dims[n_dense - 2], target_dim))
@@ -47,7 +52,10 @@ class GNNModel(torch.nn.Module):
         x = torch.tensor(list(range(data.n_teams)))
         x = self.item_embedding(x).reshape(-1, self.embed_dim)
 
-        x = self.conv_layers[0](x, edge_index, edge_weight)
+        if len(edge_weight)>0:
+            x = self.conv_layers[0](x, edge_index, edge_weight )
+        else:
+            x = self.conv_layers[0](x, edge_index)
         x = self.activation(x)
 
         for i in range(self.n_conv - 1):
@@ -55,7 +63,10 @@ class GNNModel(torch.nn.Module):
             #     data.edge_index = get_neighbour_edge_index(data)
             #     if len(data.edge_index) > 0:
             #         edge_weight = calculate_edge_weight(data)
+            if len(edge_weight) > 0:
                     x = self.activation(self.conv_layers[i + 1](x, data.edge_index, edge_weight))
+            else:
+                x = self.activation(self.conv_layers[i + 1](x, data.edge_index))
 
         x = torch.cat([x[home], x[away]], dim=-1)
 
