@@ -14,7 +14,7 @@ RESULTS_STORAGE=results
 mkdir $TMP_STORAGE
 cd $TMP_STORAGE
 
-git clone -b exps/grid_search --single-branch https://github.com/perevale/matches_prediction.git
+git clone -b exps/AGNN_grid_search --single-branch https://github.com/perevale/matches_prediction.git
 
 #import all modules
 module add PyTorch-Geometric/1.6.0-fosscuda-2019b-Python-3.7.4-PyTorch-1.6.0
