@@ -1,6 +1,6 @@
 import torch
 from torch.nn import LogSoftmax, ReLU, Tanh, LeakyReLU
-from torch_geometric.nn import GCNConv, ARMAConv, APPNP, SAGEConv, AGNNConv
+from torch_geometric.nn import GCNConv, AGNNConv
 
 from utils import calculate_edge_weight, get_neighbour_edge_index
 
@@ -31,12 +31,8 @@ class GNNModel(torch.nn.Module):
         self.conv_layers = []
 
         self.conv_layers.append(AGNNConv())
-        # self.conv_layers.append(SAGEConv(self.embed_dim, self.conv_dims[0]))
-        # self.conv_layers.append(APPNP(K=10, alpha=0.1 ))
         for i in range(n_conv - 1):
             self.conv_layers.append(AGNNConv())
-            # self.conv_layers.append(SAGEConv(conv_dims[i], conv_dims[i + 1]))
-            # self.conv_layers.append(APPNP(K=10, alpha=0.1))
 
         self.lin_layers = []
         self.lin_layers.append(torch.nn.Linear(embed_dim * 2, dense_dims[0]))
