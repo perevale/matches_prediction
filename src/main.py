@@ -1,19 +1,13 @@
-import torch
 from DataTransformer import DataTransformer
 from Dataset import Dataset
 from FlatModel import FlatModel
 from Trainer import train_gnn_model, test_gnn_model, correct_by_class, evaluate, train_pr, train_flat_model, \
     test_flat_model, continuous_evaluation, test_cont_gnn
-from torch_geometric.data import DataLoader
 from GNNModel import GNNModel
 from PRDataset import PRDataset
 from PageRank import PageRank
 from utils import visualize_acc_loss, save_to_pickle, load_from_pickle
-import pickle
 
-# sacred
-# from sacred import Experiment
-# from sacred.observers import FileStorageObserver
 dir_prefix = "../"
 outfile = "{}data_{}_model_{}.{}"
 pickle_dir = "{}data/models/"
@@ -66,6 +60,7 @@ def run_gnn_cont(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)
+        return data.test_accuracy
 
 
 def run_gnn_model(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **kwargs):

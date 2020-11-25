@@ -21,3 +21,25 @@ def train_LSTM_model(model, X, y, epochs=20, batch_size=9):
                     batch_size=batch_size,
                     shuffle=False)
   return history
+
+
+def test_LSTM_model(data, model, matches):
+    pass
+
+
+def cont_eval_LSTM(data, model, epochs=100, lr_discount=0.2 , lr=0.001, batch_size=9):
+    train_function = train_LSTM_model
+    test_function = test_LSTM_model
+
+
+    matches = data.matches.append(data.data_val, ignore_index=True)
+    # matches = matches.append(data.data_test, ignore_index=True)
+
+    for i in range(0, matches.shape[0], batch_size):
+        test_function(data, model, matches.iloc[i:i + batch_size])
+        train_function(data, matches.head(i + batch_size), model, epochs,
+                       lr * (1 - lr_discount) ** int(i / batch_size / 50), batch_size)
+        print("T:{}, loss:{}, prediction eval:{}".format(int(i / batch_size), data.running_loss[-1],
+                                                         data.running_accuracy[-1]))
+    acc = float(sum(data.running_accuracy)) / matches.shape[0]
+    print(acc)
