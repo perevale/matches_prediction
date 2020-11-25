@@ -2,8 +2,6 @@ import torch
 from torch.nn import LogSoftmax, ReLU, Tanh, LeakyReLU
 from torch_geometric.nn import GCNConv
 
-from utils import calculate_edge_weight, get_neighbour_edge_index
-
 target_dim = 3
 
 activations = {
@@ -22,9 +20,6 @@ class GNNModel(torch.nn.Module):
         self.conv_dims = conv_dims
         self.n_dense = n_dense
         self.activation = activations[act_f]
-        # self.conv1 = ClusterGCNConv(embed_dim, 3)
-        # self.conv1 = SAGEConv(embed_dim, 128)
-        # self.conv2 = SAGEConv(128, 128)
 
         self.item_embedding = torch.nn.Embedding(num_embeddings=num_teams, embedding_dim=embed_dim)
 
@@ -51,10 +46,6 @@ class GNNModel(torch.nn.Module):
         x = self.activation(x)
 
         for i in range(self.n_conv - 1):
-            # if len(data.edge_index) > 0:
-            #     data.edge_index = get_neighbour_edge_index(data)
-            #     if len(data.edge_index) > 0:
-            #         edge_weight = calculate_edge_weight(data)
                     x = self.activation(self.conv_layers[i + 1](x, data.edge_index, edge_weight))
 
         x = torch.cat([x[home], x[away]], dim=-1)
