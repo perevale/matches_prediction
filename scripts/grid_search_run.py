@@ -9,7 +9,7 @@ from utils import load_from_pickle
 exp_counter = sys.argv[1]
 parameters_filename = sys.argv[2]
 input_filename = sys.argv[3]+"data/GER1_all.csv"
-output_filename = "/home/perevale/thesis/results/results1.txt"
+output_filename = "/home/perevale/thesis/results/results_GRAPH.txt"
 
 
 def to_float(tup):
@@ -21,15 +21,15 @@ def to_int(tup):
 
 
 parameters = load_from_pickle(parameters_filename)
-print("EXP:|{}| embed_dim={}, n_conv={}, conv_dims={}, l={} \n".
+print("EXP:|{}| embed_dim={}, n_conv={}, conv_dims={}, act_f={} \n".
             format(exp_counter, parameters["embed_dim"], parameters["n_conv"], parameters["conv_dims"],
-                   parameters["lr"]))
-acc = run_gnn_cont(input_filename,dir_prefix=sys.argv[3], lr=to_float(parameters["lr"]), exp_num=int(exp_counter), embed_dim=int(parameters["embed_dim"]),
+                   parameters["act_f"]))
+acc = run_gnn_cont(input_filename,dir_prefix=sys.argv[3], act_f=parameters["act_f"], exp_num=int(exp_counter), embed_dim=int(parameters["embed_dim"]),
                     n_conv=int(parameters["n_conv"]), conv_dims=to_int(parameters["conv_dims"]))
-print("EXP:|{}| embed_dim={}, n_conv={}, conv_dims={}, l={} achieved accuracy:|{}|\n".
+print("EXP:|{}| embed_dim={}, n_conv={}, conv_dims={}, act_f={} achieved accuracy:|{}|\n".
         format(exp_counter, parameters["embed_dim"], parameters["n_conv"], parameters["conv_dims"],
-               parameters["lr"], acc))
+               parameters["act_f"], acc))
 with open(output_filename, "a+") as f:
-    f.write("EXP:|{}| embed_dim={}, n_conv={}, conv_dims={}, l={} achieved accuracy:|{}|\n".
+    f.write("EXP:|{}| embed_dim={}, n_conv={}, conv_dims={}, act_f={} achieved accuracy:|{}|\n".
             format(exp_counter, parameters["embed_dim"], parameters["n_conv"], parameters["conv_dims"],
-                   parameters["lr"], acc))
+                   parameters["act_f"], acc))

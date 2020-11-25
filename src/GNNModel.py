@@ -1,6 +1,6 @@
 import torch
 from torch.nn import LogSoftmax, ReLU, Tanh, LeakyReLU
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GraphConv
 
 target_dim = 3
 
@@ -12,7 +12,7 @@ activations = {
 
 
 class GNNModel(torch.nn.Module):
-    def __init__(self, num_teams, embed_dim=1, n_conv=1, conv_dims=(1, 1, 1), n_dense=3, dense_dims=(6, 16),
+    def __init__(self, num_teams, embed_dim=3, n_conv=2, conv_dims=(2, 2, 2), n_dense=3, dense_dims=(6, 16),
                  act_f='leaky', **kwargs):
         super(GNNModel, self).__init__()
         self.embed_dim = embed_dim
@@ -24,9 +24,9 @@ class GNNModel(torch.nn.Module):
         self.item_embedding = torch.nn.Embedding(num_embeddings=num_teams, embedding_dim=embed_dim)
 
         self.conv_layers = []
-        self.conv_layers.append(GCNConv(self.embed_dim, self.conv_dims[0]))
+        self.conv_layers.append(GraphConv(self.embed_dim, self.conv_dims[0]))
         for i in range(n_conv - 1):
-            self.conv_layers.append(GCNConv(conv_dims[i], conv_dims[i + 1]))
+            self.conv_layers.append(GraphConv(conv_dims[i], conv_dims[i + 1]))
 
         self.lin_layers = []
         self.lin_layers.append(torch.nn.Linear(conv_dims[n_conv - 1] * 2, dense_dims[0]))
