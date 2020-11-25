@@ -51,7 +51,7 @@ def run_gnn_cont(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
-    epochs = [25]
+    epochs = [30]
     for i, data in enumerate(data_list):
         model = GNNModel(data.n_teams, **kwargs)
         continuous_evaluation(data, model, epochs[0], batch_size=9)
