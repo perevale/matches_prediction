@@ -6,6 +6,7 @@ from Trainer import train_gnn_model, test_gnn_model, correct_by_class, evaluate,
 from GNNModel import GNNModel
 from PRDataset import PRDataset
 from PageRank import PageRank
+from LSTMModel import create_LSTM_model, cont_eval_LSTM, test_LSTM_model
 from utils import visualize_acc_loss, save_to_pickle, load_from_pickle
 
 dir_prefix = "../"
@@ -36,6 +37,15 @@ def run_flat_model(filename, dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **
         save_to_pickle(file, data_to_save)
         visualize_acc_loss(data, epochs, outfile.format(images_dir.format(dir_prefix), i, exp_num, "png"))
         return test_acc
+
+def run_LSTM_model(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **kwargs):
+    dataset = PRDataset(filename=filename)
+    data_list = dataset.process()
+    epochs = [30]
+    for i, data in enumerate(data_list):
+        model = create_LSTM_model(data.n_teams)
+        cont_eval_LSTM(data, model)
+
 
 
 def run_pr_model(filename):
@@ -103,7 +113,7 @@ def grid_search(filename, outfile):
 
 
 if __name__ == '__main__':
-    model_id = 5  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont
+    model_id = 6  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont 6: LSTM
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
@@ -125,6 +135,8 @@ if __name__ == '__main__':
         grid_search(filename, grid_search_file)
     elif model_id == 5:
         run_gnn_cont(filename)
+    elif model_id == 6:
+        run_LSTM_model(filename)
     else:
         file = outfile.format(pickle_dir.format(dir_prefix), 0, exp_num, "pickle")
         data = load_from_pickle(file)

@@ -12,7 +12,7 @@ activations = {
 
 
 class GNNModel(torch.nn.Module):
-    def __init__(self, num_teams, embed_dim=1, n_conv=1, conv_dims=(1, 1, 1), n_dense=3, dense_dims=(6, 16),
+    def __init__(self, num_teams, embed_dim=2, n_conv=2, conv_dims=(1, 1, 1), n_dense=3, dense_dims=(6, 16),
                  act_f='leaky', **kwargs):
         super(GNNModel, self).__init__()
         self.embed_dim = embed_dim
@@ -24,12 +24,13 @@ class GNNModel(torch.nn.Module):
         self.item_embedding = torch.nn.Embedding(num_embeddings=num_teams, embedding_dim=embed_dim)
 
         self.conv_layers = []
-        self.conv_layers.append(GCNConv(self.embed_dim, self.conv_dims[0]))
+
+        self.conv_layers.append(AGNNConv())
         for i in range(n_conv - 1):
-            self.conv_layers.append(GCNConv(conv_dims[i], conv_dims[i + 1]))
+            self.conv_layers.append(AGNNConv())
 
         self.lin_layers = []
-        self.lin_layers.append(torch.nn.Linear(conv_dims[n_conv - 1] * 2, dense_dims[0]))
+        self.lin_layers.append(torch.nn.Linear(embed_dim * 2, dense_dims[0]))
         for i in range(n_dense - 2):
             self.lin_layers.append(torch.nn.Linear(dense_dims[i], dense_dims[i + 1]))
         self.lin_layers.append(torch.nn.Linear(dense_dims[n_dense - 2], target_dim))
