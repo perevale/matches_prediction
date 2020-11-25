@@ -25,7 +25,7 @@ print("EXP:|{}| embed_dim={}, n_conv={}, act_f={}, l={} \n".
             format(exp_counter, parameters["embed_dim"], parameters["n_conv"], parameters["act_f"],
                    parameters["lr"]))
 acc = run_gnn_cont(input_filename,dir_prefix=sys.argv[3], lr=to_float(parameters["lr"]), exp_num=int(exp_counter), embed_dim=int(parameters["embed_dim"]),
-                    n_conv=int(parameters["n_conv"]), act_f=to_int(parameters["act_f"]))
+                    n_conv=int(parameters["n_conv"]), act_f=parameters["act_f"])
 print("EXP:|{}| embed_dim={}, n_conv={}, act_f={}, l={} achieved accuracy:|{}|\n".
         format(exp_counter, parameters["embed_dim"], parameters["n_conv"], parameters["act_f"],
                parameters["lr"], acc))
