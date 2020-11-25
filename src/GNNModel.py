@@ -26,12 +26,12 @@ class GNNModel(torch.nn.Module):
         # self.conv1 = SAGEConv(embed_dim, 128)
         # self.conv2 = SAGEConv(128, 128)
 
+        self.item_embedding = torch.nn.Embedding(num_embeddings=num_teams, embedding_dim=embed_dim)
+
         self.conv_layers = []
         self.conv_layers.append(GCNConv(self.embed_dim, self.conv_dims[0]))
         for i in range(n_conv - 1):
             self.conv_layers.append(GCNConv(conv_dims[i], conv_dims[i + 1]))
-
-        self.item_embedding = torch.nn.Embedding(num_embeddings=num_teams, embedding_dim=embed_dim)
 
         self.lin_layers = []
         self.lin_layers.append(torch.nn.Linear(conv_dims[n_conv - 1] * 2, dense_dims[0]))

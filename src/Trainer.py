@@ -69,8 +69,9 @@ def test_cont_gnn(data, model, matches, mode="val"):
         _, predicted = torch.max(outputs.data, 1)
         correct = int((predicted.numpy() == label.reshape(-1,)).sum().item())
         if mode == "test":
-            return float(correct)/matches.shape[0]
-        data.running_accuracy.append(correct)
+            data.test_accuracy = float(correct)/matches.shape[0]
+        else:
+            data.running_accuracy.append(correct)
 
 
 def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_info=True):

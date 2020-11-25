@@ -57,12 +57,12 @@ def run_gnn_cont(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
-    epochs = [20]
+    epochs = [25]
     for i, data in enumerate(data_list):
         model = GNNModel(data.n_teams, **kwargs)
         continuous_evaluation(data, model, epochs[0], batch_size=9)
-        test_acc = test_cont_gnn(data, model, data.data_test, "test")
-        print("accuracy on testing data is: {}".format(test_acc))
+        test_cont_gnn(data, model, data.data_test, "test")
+        print("accuracy on testing data is: {}".format(data.test_accuracy))
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)

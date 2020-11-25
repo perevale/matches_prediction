@@ -23,7 +23,7 @@ chmod -R 777 matches_prediction
 cd matches_prediction
 srun scripts/grid_search_run.py $1 $2 $TMP_STORAGE/matches_prediction/
 
-mv $TMP_STORAGE/matches_prediction/data/img/*.png $HOME_STORAGE/$IMAGES_STORAGE
+#mv $TMP_STORAGE/matches_prediction/data/img/*.png $HOME_STORAGE/$IMAGES_STORAGE
 mv $TMP_STORAGE/matches_prediction/data/models/*.pickle $HOME_STORAGE/$MODELS_STORAGE
 
 cd /data/temporary
