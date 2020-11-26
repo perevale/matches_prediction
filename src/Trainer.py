@@ -63,7 +63,7 @@ def train_cont_gnn(data, matches, model, epochs=100, lr=0.001, batch_size=9, pri
             _, predicted = torch.max(outputs.data, 1)
             correct = int((predicted == result).sum().item())
             running_accuracy.append(correct)
-            acc+=correct
+            acc += correct
 
             update_edge_time(data, home, away, result)
             update_edge_index(data)
@@ -73,7 +73,6 @@ def train_cont_gnn(data, matches, model, epochs=100, lr=0.001, batch_size=9, pri
         if print_info:
             print("Epoch:{}, train_loss:{:.5f}, train_acc:{:.5f}"
                   .format(epoch, loss_value, acc / (matches.shape[0])))
-
 
         data.curr_time -= math.ceil(matches.shape[0] / batch_size)
         running_loss.append(loss_value)
@@ -314,53 +313,67 @@ def train_flat_model(data, model, epochs=100, lr=0.001, dataset="train", print_i
     if dataset == "val":
         matches = data.data_val
 
-    criterion = nn.CrossEntropyLoss()
-    criterion = nn.PoissonNLLLoss()
-    # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=0.01)
+    criterion = nn.NLLLoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    running_loss = []
+    running_accuracy = []
     for epoch in range(epochs):
-
+        acc = 0
         loss_value = 0.0
+        optimizer.zero_grad()
         for j in range(0, matches.shape[0], batch_size):
-            home, away, result = matches.iloc[j:j + batch_size]['home_team'].values.astype('int64'), \
-                                 matches.iloc[j:j + batch_size]['away_team'].values.astype('int64'), \
+            home, away, result = torch.from_numpy(matches.iloc[j:j + batch_size]['home_team'].values.astype('int64')), \
+                                 torch.from_numpy(matches.iloc[j:j + batch_size]['away_team'].values.astype('int64')), \
                                  torch.from_numpy(
                                      matches.iloc[j:j + batch_size]['lwd'].values.astype('int64').reshape(-1, ))
-            optimizer.zero_grad()
-
+            # label = torch.zeros(result.shape[0], target_dim).scatter_(1, torch.tensor(result), 1)  # one-hot label for loss
             outputs = model(home, away)
-            loss = criterion(outputs, label)
+            # loss = criterion(outputs, label.to(torch.float))
+            loss = criterion(outputs, result)
             loss.backward()
             optimizer.step()
+            loss_value += loss.item()
 
-            data.val_accuracy.append(test_flat_model(data, model, "val"))
-            data.train_loss.append(loss_value)
+            _, predicted = torch.max(outputs.data, 1)
+            correct = int((predicted == result).sum().item())
+            running_accuracy.append(correct)
+            acc += correct
 
+        test_flat_model(data, model, "val")
         if print_info:
-            print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, data.val_accuracy[-1], loss_value))
-    if print_info:
-        print('Finished training on {} data'.format(dataset))
+            print("Epoch:{}, train_loss:{:.5f}, train_acc:{:.5f}, val_loss={:.5f}, val_acc={:.5f}"
+                  .format(epoch, loss_value, acc / (matches.shape[0]),
+                          data.val_loss[-1],
+                          data.val_accuracy[-1]
+                          ))
+
+        running_loss.append(loss_value)
+        if epoch % 50 == 49:
+            for param_group in optimizer.param_groups:
+                param_group['lr'] *= 0.8
+    data.train_loss.append(sum(running_loss) / matches.shape[0])
+    data.train_accuracy.append(sum(running_accuracy) / (matches.shape[0] * epochs))
 
 
 def test_flat_model(data, model, data_type=None):
-    correct = 0
-    total = 0
+    matches = data.matches
+    if data_type == "val":
+        matches = data.data_val
+    elif data_type == "test":
+        matches = data.data_test
+    criterion = nn.NLLLoss()
+
+    home, away, label = torch.from_numpy(matches['home_team'].values.astype('int64')), \
+                        torch.from_numpy(matches['away_team'].values.astype('int64')), \
+                        torch.from_numpy(matches['lwd'].values.astype('int64').reshape(-1, ))
     with torch.no_grad():
-        matches = data.matches
-        if data_type == "val":
-            matches = data.data_val
-        elif data_type == "test":
-            matches = data.data_test
-        for j in range(matches.shape[0]):
-            home, away = torch.tensor(matches.iloc[j]['home_team']), torch.tensor(matches.iloc[j]['away_team'])
-            outputs = model(home, away)
+        outputs = model(home, away)
+        loss = criterion(outputs, label).item()
 
-            _, predicted = torch.max(outputs.data, 1)
-            label = matches.iloc[j]['lwd']
-            total += 1
-            correct += (predicted == label).sum().item()
-
-    accuracy = 100 * correct / total
-    if data_type == "test":
-        data.test_accuracy = accuracy
-    return accuracy
+        _, predicted = torch.max(outputs.data, 1)
+        correct = int((predicted == label).sum().item())
+        if data_type == "test":
+            data.test_accuracy = float(correct) / matches.shape[0]
+        else:
+            data.val_accuracy.append(float(correct) / matches.shape[0])
+            data.val_loss.append(loss)

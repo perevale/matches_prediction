@@ -31,7 +31,7 @@ class FlatModel(torch.nn.Module):
             self.lin_layers.append(torch.nn.Linear(dense_dims[i], dense_dims[i + 1]))
         self.lin_layers.append(torch.nn.Linear(dense_dims[n_dense - 2], self.out_dim))
 
-        self.out = LogSoftmax(dim=0)
+        self.out = LogSoftmax(dim=1)
 
         self.drop = Dropout(p=0.2)
 

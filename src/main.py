@@ -26,7 +26,7 @@ def common_loading(filename):
 def run_flat_model(filename, dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **kwargs):
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
-    epochs = [100, 100]
+    epochs = [500, 300]
     for i, data in enumerate(data_list):
         model = FlatModel(data.n_teams, **kwargs)
         train_flat_model(data, model, epochs=epochs[0], lr=lr[0], print_info=True)
@@ -126,12 +126,12 @@ def grid_search(filename, outfile):
 
 if __name__ == '__main__':
     # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont, 6: LSTM, 7: gnn batched
-    model_id = 7
+    model_id = 0
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
     # filename = "../data/mini_data.csv"
-    # filename = "../data/GER1_all.csv"
+    filename = "../data/GER1_all.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"
