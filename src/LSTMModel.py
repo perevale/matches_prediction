@@ -32,8 +32,8 @@ def test_LSTM_model(data, model, X, y):
     # print(np.argmax(y_pred, axis=1))
     # print(y.reshape(-1, ))
     loss, accuracy = model.evaluate(X, y, batch_size=9, verbose=0)
-    data.running_loss.append(loss)
-    data.running_accuracy.append(accuracy)
+    data.val_loss.append(loss)
+    data.val_accuracy.append(accuracy)
     return accuracy
 
 
@@ -54,9 +54,9 @@ def cont_eval_LSTM(data, model, epochs=10, lr_discount=0.2, lr=0.001, batch_size
 
         test_function(data, model, X_test, y_test)
         train_function(data, model, X, y, epochs, batch_size)
-        print("T:{}, loss:{}, acc:{}".format(int(i / batch_size), data.running_loss[-1],
-                                             data.running_accuracy[-1]))
-    acc = float(sum(data.running_accuracy)) / len(data.running_accuracy)
+        print("T:{}, loss:{}, acc:{}".format(int(i / batch_size), data.train_loss[-1],
+                                             data.val_accuracy[-1]))
+    acc = float(sum(data.val_accuracy)) / len(data.val_accuracy)
     print(acc)
 
     X, y = data.data_test[['home_team', 'away_team']].to_numpy().astype('float32'), \

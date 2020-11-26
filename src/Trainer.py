@@ -1,10 +1,13 @@
+import math
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
-from utils import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight, update_edge_time, calculate_edge_weight, create_test_edge_index, update_edge_index
-import math
+
+from utils import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight, update_edge_time, \
+    calculate_edge_weight, update_edge_index
 
 target_dim = 3
 
@@ -20,58 +23,77 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, mo
     matches = data.matches.append(data.data_val, ignore_index=True)
     # matches = matches.append(data.data_test, ignore_index=True)
 
-    for i in range(0,matches.shape[0], batch_size):
-        test_function(data, model, matches.iloc[i:i+batch_size])
-        train_function(data, matches.head(i+batch_size), model, epochs, lr*(1-lr_discount)**int(i/batch_size/50), batch_size)
-        print("T:{}, loss:{}, prediction eval:{}".format(int(i/batch_size), data.running_loss[-1], data.running_accuracy[-1]))
-    acc = float(sum(data.running_accuracy))/matches.shape[0]
+    for i in range(0, matches.shape[0], batch_size):
+        test_function(data, model, matches.iloc[i:i + batch_size])
+        train_function(data, matches.head(i + batch_size), model, epochs,
+                       lr * (1 - lr_discount) ** int(i / batch_size / 50), batch_size)
+        print("T:{}, train_loss:{:.5f}, train_acc:{:.5f}, val_loss={:.5f}, val_acc={:.5f}"
+              .format(int(i / batch_size),
+                      data.train_loss[-1],
+                      data.train_accuracy[-1],
+                      data.val_loss[-1],
+                      data.val_accuracy[-1]))
+    acc = float(sum(data.val_accuracy)) / len(data.val_accuracy)
     print(acc)
 
 
 def train_cont_gnn(data, matches, model, epochs=100, lr=0.001, batch_size=9):
-    criterion = nn.PoissonNLLLoss()
+    # criterion = nn.PoissonNLLLoss()
+    criterion = nn.NLLLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     running_loss = []
+    running_accuracy = []
     for epoch in range(epochs):
         loss_value = 0.0
         optimizer.zero_grad()
-        for j in range(0,matches.shape[0], batch_size):
-            home, away, result = matches.iloc[j:j+batch_size]['home_team'].values.astype('int64'), \
-                                 matches.iloc[j:j+batch_size]['away_team'].values.astype('int64'), \
-                                 matches.iloc[j:j+batch_size]['lwd'].values.astype('int64').reshape(-1,1)
-            label = torch.zeros(result.shape[0], target_dim).scatter_(1, torch.tensor(result), 1)  # one-hot label for loss
+        for j in range(0, matches.shape[0], batch_size):
+            home, away, result = matches.iloc[j:j + batch_size]['home_team'].values.astype('int64'), \
+                                 matches.iloc[j:j + batch_size]['away_team'].values.astype('int64'), \
+                                 torch.from_numpy(
+                                     matches.iloc[j:j + batch_size]['lwd'].values.astype('int64').reshape(-1, ))
+            # label = torch.zeros(result.shape[0], target_dim).scatter_(1, torch.tensor(result), 1)  # one-hot label for loss
             outputs = model(data, home, away)
-            loss = criterion(outputs, label.to(torch.float))
+            # loss = criterion(outputs, label.to(torch.float))
+            loss = criterion(outputs, result)
             loss.backward()
             optimizer.step()
             loss_value += loss.item()
+
+            _, predicted = torch.max(outputs.data, 1)
+            correct = int((predicted == result).sum().item())
+            running_accuracy.append(correct)
 
             update_edge_time(data, home, away, result)
             update_edge_index(data)
             calculate_edge_weight(data)
             data.curr_time += 1
 
-        data.curr_time -= math.ceil(matches.shape[0]/batch_size)
+        data.curr_time -= math.ceil(matches.shape[0] / batch_size)
         running_loss.append(loss_value)
         if epoch % 50 == 49:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.8
-    data.running_loss.append(sum(running_loss)/matches.shape[0])
+    data.train_loss.append(sum(running_loss) / matches.shape[0])
+    data.train_accuracy.append(sum(running_accuracy) / (matches.shape[0] * epochs))
 
 
 def test_cont_gnn(data, model, matches, mode="val"):
+    criterion = nn.NLLLoss()
+
     home, away, label = matches['home_team'].values.astype('int64'), \
-                         matches['away_team'].values.astype('int64'), \
-                         matches['lwd'].values.astype('int64').reshape(-1, 1)
+                        matches['away_team'].values.astype('int64'), \
+                        torch.from_numpy(matches['lwd'].values.astype('int64').reshape(-1, ))
     with torch.no_grad():
         outputs = model(data, home, away)
+        loss = criterion(outputs, label).item()
 
         _, predicted = torch.max(outputs.data, 1)
-        correct = int((predicted.numpy() == label.reshape(-1,)).sum().item())
+        correct = int((predicted == label).sum().item())
         if mode == "test":
-            data.test_accuracy = float(correct)/matches.shape[0]
+            data.test_accuracy = float(correct) / matches.shape[0]
         else:
-            data.running_accuracy.append(correct)
+            data.val_accuracy.append(float(correct) / matches.shape[0])
+            data.val_loss.append(loss)
 
 
 def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_info=True):
@@ -96,12 +118,13 @@ def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_in
         # forward + backward + optimize
         # outputs = model(home, away)
 
-        labels = torch.nn.functional.one_hot(torch.tensor(np.int64(matches['lwd'])).reshape(-1,1), num_classes=len(np.unique(np.int64(matches['lwd']))))
+        labels = torch.nn.functional.one_hot(torch.tensor(np.int64(matches['lwd'])).reshape(-1, 1),
+                                             num_classes=len(np.unique(np.int64(matches['lwd']))))
         for j in range(matches.shape[0]):
             home, away, result = matches.iloc[j]['home_team'], matches.iloc[j]['away_team'], \
-                     matches.iloc[j]['lwd']
+                                 matches.iloc[j]['lwd']
             label = labels[j]
-                                # data.matches[0].iloc[j]['lwd']
+            # data.matches[0].iloc[j]['lwd']
 
             # create_edge_index(data, home, away, matches.iloc[j]['lwd'])
             # calculate_node_weight(data, j, data.matches[0].shape[0])
@@ -123,18 +146,19 @@ def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_in
             data.curr_time += 1
 
         data.curr_time -= matches.shape[0]
-        data.running_accuracy.append(test_gnn_model(data, model, "val"))
-        data.running_loss.append(loss_value)
+        data.val_accuracy.append(test_gnn_model(data, model, "val"))
+        data.train_loss.append(loss_value)
         if epoch % 50 == 49:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.8
         if print_info:
-            print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, data.running_accuracy[-1], loss_value))
+            print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, data.val_accuracy[-1], loss_value))
     # update_win_lose_network(data.win_lose_network, matches.iloc[j])
     if print_info:
         print('Finished training on {} data'.format(dataset))
 
     # plot_accuracy(running_accuracy)
+
 
 def test_gnn_model(data, model, data_type="val"):
     correct = 0
@@ -233,24 +257,25 @@ def train_pr(data, model):
         # update_edge_time(data, home, away)
         data.curr_time += 1
 
-            # # forward + backward + optimize
-            # # outputs = model(home, away)
-            # # labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0][:, 10]).reshape(-1, 1)),
-            # #                                      num_classes=target_dim)
-            # for j in range(d.matches[0].shape[0]):
-            #     # lr_counter += 1
-            #
-            #     home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], d.matches[0].iloc[j][ 'lwd']#labels[j]
-            #     if j > 0:
-            #         update_win_lose_network(d.win_lose_network[0], d.matches[0].iloc[j - 1])
-            #     create_edge_index(d, home, away, label)
-            #     calculate_node_weight(d, j, d.matches[0].shape[0])
-            #     model(d, home, away)
-            #     update_node_time(d, j)
+        # # forward + backward + optimize
+        # # outputs = model(home, away)
+        # # labels = torch.nn.functional.one_hot(torch.tensor(np.int64(d.matches[0][:, 10]).reshape(-1, 1)),
+        # #                                      num_classes=target_dim)
+        # for j in range(d.matches[0].shape[0]):
+        #     # lr_counter += 1
+        #
+        #     home, away, label = d.matches[0].iloc[j]['home_team'], d.matches[0].iloc[j]['away_team'], d.matches[0].iloc[j][ 'lwd']#labels[j]
+        #     if j > 0:
+        #         update_win_lose_network(d.win_lose_network[0], d.matches[0].iloc[j - 1])
+        #     create_edge_index(d, home, away, label)
+        #     calculate_node_weight(d, j, d.matches[0].shape[0])
+        #     model(d, home, away)
+        #     update_node_time(d, j)
 
     print('Finished Training')
     print('Accuracy of the network on the %s data: %.5f %%' % ("training",
                                                                test_pr(data, model)))
+
 
 def test_pr(data, model):
     correct = 0
@@ -301,11 +326,11 @@ def train_flat_model(data, model, epochs=100, lr=0.001, dataset="train", print_i
             loss.backward()
             optimizer.step()
 
-            data.running_accuracy.append(test_flat_model(data, model, "val"))
-            data.running_loss.append(loss_value)
+            data.val_accuracy.append(test_flat_model(data, model, "val"))
+            data.train_loss.append(loss_value)
 
         if print_info:
-            print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, data.running_accuracy[-1], loss_value))
+            print('[%d] Accuracy:  %.5f, loss: %.5f' % (epoch, data.val_accuracy[-1], loss_value))
     if print_info:
         print('Finished training on {} data'.format(dataset))
 

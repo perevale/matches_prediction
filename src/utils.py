@@ -108,7 +108,6 @@ def calculate_node_weight(data, curr_time):
 
 
 def update_edge_time(data, home, away, result):
-    result = result.reshape(-1,)
     winning_team = np.array([]).astype('int64')
     losing_team = np.array([]).astype('int64')
 
@@ -159,7 +158,7 @@ def visualize_acc_loss(data, epochs, file_to_save):
                          ]
     ax[0].axvspan(0, epochs[0] - 1, color=colors[0], alpha=0.5, lw=0)
     ax[0].axvspan(epochs[0] - 1, epochs_total - 1, color=colors[1], alpha=0.5, lw=0)
-    ax[0].plot(data.running_accuracy)
+    ax[0].plot(data.val_accuracy)
     ax[0].hlines(data.test_accuracy, 0, epochs_total - 1, colors=colors[2])
     lg_0 = ax[0].legend(bbox_to_anchor=(0.2, -0.55), loc='lower left',
                         ncol=1, borderaxespad=-0.3, handles=legend_elements_1)
@@ -178,7 +177,7 @@ def visualize_acc_loss(data, epochs, file_to_save):
                          ]
     ax[1].axvspan(0, epochs[0] - 1, color=colors[0], alpha=0.5, lw=0)
     ax[1].axvspan(epochs[0] - 1, epochs_total - 1, color=colors[1], alpha=0.5, lw=0)
-    ax[1].plot(data.running_loss)
+    ax[1].plot(data.train_loss)
     lg_1 = ax[1].legend(bbox_to_anchor=(0.8, -0.5), loc='lower right',
                         ncol=1, borderaxespad=-0.3, handles=legend_elements_1)
     ax[1].title.set_text('Loss')

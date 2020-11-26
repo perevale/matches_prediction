@@ -60,8 +60,10 @@ class PRDataset():
                 curr_time=0,
                 N=dt.N,
                 baseline=max(won, lost, draw),
-                running_loss=[],
-                running_accuracy=[]
+                train_loss=[],
+                train_accuracy=[],
+                val_loss=[],
+                val_accuracy=[]
             )
             data_list.append(data)
 

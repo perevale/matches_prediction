@@ -37,7 +37,7 @@ class GNNModel(torch.nn.Module):
 
         self.out = LogSoftmax(dim=0)
 
-    def forward(self, data, home, away, mode="train"):
+    def forward(self, data, home, away):
         edge_index, edge_weight = data.edge_index, data.edge_weight
         home, away = list(home), list(away)
         x = torch.tensor(list(range(data.n_teams)))
