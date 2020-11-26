@@ -108,20 +108,21 @@ def calculate_node_weight(data, curr_time):
 
 
 def update_edge_time(data, home, away, result):
+    result = result.reshape(-1,)
     winning_team = np.array([]).astype('int64')
     losing_team = np.array([]).astype('int64')
 
     # home won
-    np.append(winning_team, home[np.where(result == 2)[0]])
-    np.append(losing_team, away[np.where(result == 2)[0]])
+    winning_team = np.append(winning_team, home[np.where(result == 2)[0]])
+    losing_team = np.append(losing_team, away[np.where(result == 2)[0]])
     # away won
-    np.append(winning_team, away[np.where(result == 0)[0]])
-    np.append(losing_team, home[np.where(result == 0)[0]])
+    winning_team = np.append(winning_team, away[np.where(result == 0)[0]])
+    losing_team = np.append(losing_team, home[np.where(result == 0)[0]])
     # draw
-    np.append(winning_team, home[np.where(result == 1)[0]])
-    np.append(winning_team, away[np.where(result == 1)[0]])
-    np.append(losing_team, home[np.where(result == 1)[0]])
-    np.append(losing_team, away[np.where(result == 1)[0]])
+    winning_team = np.append(winning_team, home[np.where(result == 1)[0]])
+    winning_team = np.append(winning_team, away[np.where(result == 1)[0]])
+    losing_team = np.append(losing_team, away[np.where(result == 1)[0]])
+    losing_team = np.append(losing_team, home[np.where(result == 1)[0]])
 
     data.edge_time[losing_team, winning_team] = int(data.curr_time)
 

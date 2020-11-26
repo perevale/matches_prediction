@@ -117,7 +117,7 @@ def grid_search(filename, outfile):
 
 
 if __name__ == '__main__':
-    model_id = 6  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont 6: LSTM
+    model_id = 5  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont 6: LSTM
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
