@@ -1,19 +1,19 @@
-import pandas as pd
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Embedding, Dropout, Dense
-from sklearn.preprocessing import RobustScaler
-from keras.optimizers import Adam
+import numpy as np
 import tensorflow as tf
+from keras.optimizers import Adam
+from tensorflow.keras.layers import LSTM, Embedding, Dropout, Dense
+from tensorflow.keras.models import Sequential
 
 
-def create_LSTM_model(n_teams, lstm_units=100, loss='sparse_categorical_crossentropy',
-                      dropout_rate=0.2, input_length=2, batchsize=9):
+def create_LSTM_model(n_teams, lstm_units=256, dropout_rate=0.2, input_length=2, batchsize=9):
     model = Sequential()
     model.add(Embedding(n_teams, batchsize, input_length=input_length))
     model.add(LSTM(units=lstm_units, recurrent_dropout=dropout_rate))
     model.add(Dropout(rate=dropout_rate))
-    model.add(Dense(units=3))
-    model.compile(optimizer=Adam(lr=0.01), loss=loss, metrics=['categorical_accuracy'])
+    model.add(Dense(units=16))
+    model.add(Dense(units=3, activation='softmax'))
+    model.compile(optimizer=Adam(lr=0.001), loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+                  metrics=[tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1)])
     return model
 
 
@@ -28,6 +28,9 @@ def train_LSTM_model(data, model, X, y, epochs=10, batch_size=9):
 
 
 def test_LSTM_model(data, model, X, y):
+    y_pred = model.predict(X)
+    print(np.argmax(y_pred, axis=1))
+    print(y.reshape(-1, ))
     loss, accuracy = model.evaluate(X, y, batch_size=9, verbose=0)
     data.running_loss.append(loss)
     data.running_accuracy.append(accuracy)

@@ -45,7 +45,7 @@ def run_LSTM_model(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, 
     for i, data in enumerate(data_list):
         model = create_LSTM_model(data.n_teams)
         cont_eval_LSTM(data, model)
-        file = outfile.format(pickle_dir.format(dir_prefix), i, "LSTM", {})
+        file = outfile.format(pickle_dir.format(dir_prefix), i, "LSTM_2", {})
         save_keras_model(file, model)
         data_to_save = {"data": data}
         file = file.format('pickle')
