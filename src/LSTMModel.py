@@ -1,8 +1,8 @@
 import numpy as np
-import tensorflow as tf
-from keras.optimizers import Adam
-from tensorflow.keras.layers import LSTM, Embedding, Dropout, Dense
-from tensorflow.keras.models import Sequential
+# import tensorflow as tf
+# from tensorflow.keras.optimizers import Adam
+# from tensorflow.keras.layers import LSTM, Embedding, Dropout, Dense
+# from tensorflow.keras.models import Sequential
 
 
 def create_LSTM_model(n_teams, lstm_units=256, dropout_rate=0.2, input_length=2, batchsize=9):
