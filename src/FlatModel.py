@@ -10,13 +10,14 @@ activations = {
 
 
 class FlatModel(torch.nn.Module):
-    def __init__(self, n_teams, out_dim, embed_dim=3, pretrained_weights=None, n_dense=5, dense_dims=(64, 32, 16, 6),
+    def __init__(self, n_teams, out_dim=3, embed_dim=3, pretrained_weights=None, n_dense=5, dense_dims=(64, 32, 16, 6),
                  act_f='leaky', **kwargs):
         super(FlatModel, self).__init__()
         # set hyperparameters for the model
         self.n_teams = n_teams
         self.out_dim = out_dim
         self.activation = activations[act_f]
+        self.n_dense = n_dense
 
         # set the layers to be used in the model
         if pretrained_weights is not None:
@@ -25,7 +26,7 @@ class FlatModel(torch.nn.Module):
             self.embedding = Embedding(n_teams, embed_dim)
 
         self.lin_layers = []
-        self.lin_layers.append(torch.nn.Linear(embed_dim * 2, self.flat[0]))
+        self.lin_layers.append(torch.nn.Linear(embed_dim * 2, dense_dims[0]))
         for i in range(n_dense - 2):
             self.lin_layers.append(torch.nn.Linear(dense_dims[i], dense_dims[i + 1]))
         self.lin_layers.append(torch.nn.Linear(dense_dims[n_dense - 2], self.out_dim))

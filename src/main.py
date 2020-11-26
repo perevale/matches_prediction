@@ -2,7 +2,7 @@ from DataTransformer import DataTransformer
 from Dataset import Dataset
 from FlatModel import FlatModel
 from Trainer import train_gnn_model, test_gnn_model, correct_by_class, evaluate, train_pr, train_flat_model, \
-    test_flat_model, continuous_evaluation, test_cont_gnn
+    test_flat_model, continuous_evaluation, test_cont_gnn, train_cont_gnn
 from GNNModel import GNNModel
 from PRDataset import PRDataset
 from PageRank import PageRank
@@ -29,8 +29,8 @@ def run_flat_model(filename, dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **
     epochs = [100, 100]
     for i, data in enumerate(data_list):
         model = FlatModel(data.n_teams, **kwargs)
-        train_flat_model(data, model, epochs=epochs[0], lr=lr[0])
-        train_flat_model(data, model, epochs=epochs[1], dataset="val", lr=lr[1])
+        train_flat_model(data, model, epochs=epochs[0], lr=lr[0], print_info=True)
+        train_flat_model(data, model, epochs=epochs[1], dataset="val", lr=lr[1], print_info=True)
         test_acc = test_flat_model(data, model, "test")
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
@@ -95,6 +95,14 @@ def run_gnn_model(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, *
         return test_acc
 
 
+def run_gnn_batched(filename):
+    dataset = PRDataset(filename=filename)
+    data_list = dataset.process()
+    for i, data in enumerate(data_list):
+        model = GNNModel(data.n_teams)
+        matches = data.matches.append(data.data_val, ignore_index=True)
+        train_cont_gnn(data, matches, model, epochs=2000, lr=0.01, print_info=True)
+
 def grid_search(filename, outfile):
     embed_dim = [1, 2, 3, 5, 10]
     n_conv = [1, 2, 3]
@@ -117,12 +125,13 @@ def grid_search(filename, outfile):
 
 
 if __name__ == '__main__':
-    model_id = 5  # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont 6: LSTM
+    # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont, 6: LSTM, 7: gnn batched
+    model_id = 7
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
     # filename = "../data/mini_data.csv"
-    filename = "../data/GER1_all.csv"
+    # filename = "../data/GER1_all.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"
@@ -141,6 +150,8 @@ if __name__ == '__main__':
         run_gnn_cont(filename)
     elif model_id == 6:
         run_LSTM_model(filename)
+    elif model_id == 7:
+        run_gnn_batched(filename)
     else:
         file = outfile.format(pickle_dir.format(dir_prefix), 0, exp_num, "pickle")
         data = load_from_pickle(file)

@@ -12,7 +12,7 @@ from utils import update_win_lose_network, create_edge_index, update_node_time, 
 target_dim = 3
 
 
-def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, model_name="gnn", batch_size=9):
+def continuous_evaluation(data, model, epochs=100, lr=0.01, lr_discount=0.2, model_name="gnn", batch_size=9):
     print("Continuous evaluation")
     train_function = train_cont_gnn
     test_function = test_cont_gnn
@@ -37,13 +37,14 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, mo
     print(acc)
 
 
-def train_cont_gnn(data, matches, model, epochs=100, lr=0.001, batch_size=9):
+def train_cont_gnn(data, matches, model, epochs=100, lr=0.001, batch_size=9, print_info=False):
     # criterion = nn.PoissonNLLLoss()
     criterion = nn.NLLLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     running_loss = []
     running_accuracy = []
     for epoch in range(epochs):
+        acc = 0
         loss_value = 0.0
         optimizer.zero_grad()
         for j in range(0, matches.shape[0], batch_size):
@@ -62,11 +63,17 @@ def train_cont_gnn(data, matches, model, epochs=100, lr=0.001, batch_size=9):
             _, predicted = torch.max(outputs.data, 1)
             correct = int((predicted == result).sum().item())
             running_accuracy.append(correct)
+            acc+=correct
 
             update_edge_time(data, home, away, result)
             update_edge_index(data)
             calculate_edge_weight(data)
             data.curr_time += 1
+
+        if print_info:
+            print("Epoch:{}, train_loss:{:.5f}, train_acc:{:.5f}"
+                  .format(epoch, loss_value, acc / (matches.shape[0])))
+
 
         data.curr_time -= math.ceil(matches.shape[0] / batch_size)
         running_loss.append(loss_value)
@@ -96,7 +103,7 @@ def test_cont_gnn(data, model, matches, mode="val"):
             data.val_loss.append(loss)
 
 
-def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_info=True):
+def train_gnn_model(data, model, epochs=100, lr=0.01, dataset="train", print_info=True):
     matches = data.matches
     if dataset == "val":
         matches = data.data_val
@@ -140,7 +147,7 @@ def train_gnn_model(data, model, epochs=100, lr=0.001, dataset="train", print_in
 
             update_edge_time(data, home, away, result)
             # update_win_lose_network(data.win_lose_network, matches.iloc[j])
-            update_edge_index(data, home, away, result)
+            update_edge_index(data)
             calculate_edge_weight(data)
             # update_node_time(data, j)
             data.curr_time += 1
@@ -302,7 +309,7 @@ def test_pr(data, model):
     return accuracy
 
 
-def train_flat_model(data, model, epochs=100, lr=0.001, dataset="train", print_info=False):
+def train_flat_model(data, model, epochs=100, lr=0.001, dataset="train", print_info=False, batch_size=9):
     matches = data.matches
     if dataset == "val":
         matches = data.data_val
@@ -314,11 +321,11 @@ def train_flat_model(data, model, epochs=100, lr=0.001, dataset="train", print_i
     for epoch in range(epochs):
 
         loss_value = 0.0
-        labels = torch.nn.functional.one_hot(torch.tensor(np.int64(matches['lwd'])).reshape(-1, 1),
-                                             num_classes=len(np.unique(np.int64(matches['lwd']))))
-        for j in range(matches.shape[0]):
-            home, away, label = matches.iloc[j]['home_team'], matches.iloc[j]['away_team'], \
-                                labels[j]
+        for j in range(0, matches.shape[0], batch_size):
+            home, away, result = matches.iloc[j:j + batch_size]['home_team'].values.astype('int64'), \
+                                 matches.iloc[j:j + batch_size]['away_team'].values.astype('int64'), \
+                                 torch.from_numpy(
+                                     matches.iloc[j:j + batch_size]['lwd'].values.astype('int64').reshape(-1, ))
             optimizer.zero_grad()
 
             outputs = model(home, away)
@@ -345,8 +352,8 @@ def test_flat_model(data, model, data_type=None):
         elif data_type == "test":
             matches = data.data_test
         for j in range(matches.shape[0]):
-            home, away = matches.iloc[j]['home_team'], matches.iloc[j]['away_team']
-            outputs = model(data, home, away)
+            home, away = torch.tensor(matches.iloc[j]['home_team']), torch.tensor(matches.iloc[j]['away_team'])
+            outputs = model(home, away)
 
             _, predicted = torch.max(outputs.data, 1)
             label = matches.iloc[j]['lwd']

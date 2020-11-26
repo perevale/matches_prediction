@@ -12,8 +12,8 @@ activations = {
 
 
 class GNNModel(torch.nn.Module):
-    def __init__(self, num_teams, embed_dim=2, n_conv=2, conv_dims=(1, 1, 1), n_dense=3, dense_dims=(6, 16),
-                 act_f='leaky', **kwargs):
+    def __init__(self, num_teams, embed_dim=10, n_conv=3, conv_dims=(16, 16, 16, 16), n_dense=3, dense_dims=(64, 16,8),
+                 act_f='tanh', **kwargs):
         super(GNNModel, self).__init__()
         self.embed_dim = embed_dim
         self.n_conv = n_conv
@@ -35,7 +35,7 @@ class GNNModel(torch.nn.Module):
             self.lin_layers.append(torch.nn.Linear(dense_dims[i], dense_dims[i + 1]))
         self.lin_layers.append(torch.nn.Linear(dense_dims[n_dense - 2], target_dim))
 
-        self.out = LogSoftmax(dim=0)
+        self.out = LogSoftmax(dim=1)
 
     def forward(self, data, home, away):
         edge_index, edge_weight = data.edge_index, data.edge_weight
