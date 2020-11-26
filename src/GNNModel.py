@@ -25,9 +25,9 @@ class GNNModel(torch.nn.Module):
 
         self.conv_layers = []
 
-        self.conv_layers.append(AGNNConv())
+        self.conv_layers.append(GCNConv(self.embed_dim, self.conv_dims[0]))
         for i in range(n_conv - 1):
-            self.conv_layers.append(AGNNConv())
+            self.conv_layers.append(GCNConv(conv_dims[i], conv_dims[i + 1]))
 
         self.lin_layers = []
         self.lin_layers.append(torch.nn.Linear(embed_dim * 2, dense_dims[0]))

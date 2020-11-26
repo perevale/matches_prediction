@@ -8,6 +8,7 @@ import numpy as np
 import numpy.ma as ma
 import torch
 from matplotlib.lines import Line2D
+from tensorflow.python.keras.models import model_from_json
 
 
 def update_win_lose_network(win_lose_network, record):
@@ -228,3 +229,20 @@ def load_from_pickle(filename):
     with open(filename, 'rb') as file:
         data = pickle.load(file)
         return data
+
+def save_keras_model(filename, model):
+    # serialize model to JSON
+    model_json = model.to_json()
+    with open(filename.format("json"), "w") as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    model.save_weights(filename.format("h5"))
+
+def load_keras_model(filename):
+    # load json and create model
+    json_file = open(filename.format("json"), 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
+    # load weights into new model
+    loaded_model.load_weights(filename.format("h5"))
