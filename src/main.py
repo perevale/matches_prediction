@@ -7,7 +7,7 @@ from GNNModel import GNNModel
 from PRDataset import PRDataset
 from PageRank import PageRank
 from LSTMModel import create_LSTM_model, cont_eval_LSTM, test_LSTM_model
-from utils import visualize_acc_loss, save_to_pickle, load_from_pickle
+from utils import visualize_acc_loss, save_to_pickle, load_from_pickle, save_keras_model
 
 dir_prefix = "../"
 outfile = "{}data_{}_model_{}.{}"
@@ -45,7 +45,11 @@ def run_LSTM_model(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, 
     for i, data in enumerate(data_list):
         model = create_LSTM_model(data.n_teams)
         cont_eval_LSTM(data, model)
-
+        file = outfile.format(pickle_dir.format(dir_prefix), i, "LSTM", {})
+        save_keras_model(file, model)
+        data_to_save = {"data": data}
+        file = file.format('pickle')
+        save_to_pickle(file, data_to_save)
 
 
 def run_pr_model(filename):
@@ -118,7 +122,7 @@ if __name__ == '__main__':
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
     # filename = "../data/mini_data.csv"
-    # filename = "../data/GER1_all.csv"
+    filename = "../data/GER1_all.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"
