@@ -10,7 +10,7 @@ def save_to_pickle(filename, data):
 DIR = "/home/perevale/thesis/parameters"
 
 embed_dim = [1, 3, 10]
-n_dense = [1, 2, 3, 4, 5]
+n_dense = [2, 3, 4, 5]
 dims = [(64, 32, 16, 8, 4), (4, 8, 16, 32, 64), (8, 8, 8, 8, 8), (16, 16, 16, 16, 16), (64, 64, 64, 64, 64), (4, 4, 4, 4, 4)]
 # activations = ['relu', 'tanh','leaky']
 # lr = [(0.0001, 0.0001)]

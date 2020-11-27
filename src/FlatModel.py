@@ -10,7 +10,7 @@ activations = {
 
 
 class FlatModel(torch.nn.Module):
-    def __init__(self, n_teams, out_dim=3, embed_dim=3, pretrained_weights=None, n_dense=4, dense_dims=(4, 4, 4, 4),
+    def __init__(self, n_teams, out_dim=3, embed_dim=3, pretrained_weights=None, n_dense=2, dense_dims=(4, 4, 4, 4),
                  act_f='leaky', **kwargs):
         super(FlatModel, self).__init__()
         # set hyperparameters for the model
@@ -40,8 +40,8 @@ class FlatModel(torch.nn.Module):
         away_emb = self.embedding(team_away)
         x = torch.cat((home_emb, away_emb), -1)
 
-        for i in range(self.n_dense):
-            x = self.activation(self.lin_layers[i](x))
+        for layer in self.lin_layers:
+            x = self.activation(layer(x))
 
         x = self.out(x)
         return x.reshape(-1, self.out_dim)
