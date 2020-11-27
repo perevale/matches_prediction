@@ -32,6 +32,7 @@ def run_flat_model(filename, dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **
         train_flat_model(data, model, epochs=epochs[0], lr=lr[0], print_info=True)
         train_flat_model(data, model, epochs=epochs[1], dataset="val", lr=lr[1], print_info=True)
         test_acc = test_flat_model(data, model, "test")
+        print("accuracy on testing data is: {}".format(data.test_accuracy))
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)
