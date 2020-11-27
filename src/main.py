@@ -26,18 +26,18 @@ def common_loading(filename):
 def run_flat_model(filename, dir_prefix="../", lr=(0.001, 0.0001), exp_num=0, **kwargs):
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
-    epochs = [500, 300]
+    epochs = [2000, 500]
     for i, data in enumerate(data_list):
         model = FlatModel(data.n_teams, **kwargs)
         train_flat_model(data, model, epochs=epochs[0], lr=lr[0], print_info=True)
         train_flat_model(data, model, epochs=epochs[1], dataset="val", lr=lr[1], print_info=True)
-        test_acc = test_flat_model(data, model, "test")
+        test_flat_model(data, model, "test")
         print("accuracy on testing data is: {}".format(data.test_accuracy))
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)
         visualize_acc_loss(data, epochs, outfile.format(images_dir.format(dir_prefix), i, exp_num, "png"))
-        return test_acc
+        return data.test_accuracy
 
 def run_LSTM_model(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **kwargs):
     dataset = PRDataset(filename=filename)
