@@ -10,7 +10,7 @@ from utils import load_from_pickle
 exp_counter = sys.argv[1]
 parameters_filename = sys.argv[2]
 input_filename = sys.argv[3] + "data/GER1_all.csv"
-output_filename = "/home/perevale/thesis/results/results_flat.txt"
+output_filename = "/home/perevale/thesis/results/results_gnn.txt"
 
 acc, acc_val = 0, 0
 
