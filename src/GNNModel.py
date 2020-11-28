@@ -12,7 +12,7 @@ activations = {
 
 
 class GNNModel(torch.nn.Module):
-    def __init__(self, num_teams, embed_dim=10, n_conv=3, conv_dims=(16, 16, 16, 16), n_dense=3, dense_dims=(64, 16,8),
+    def __init__(self, num_teams, embed_dim=3, n_conv=3, conv_dims=(16, 16, 3, 16), n_dense=3, dense_dims=(64, 16,8),
                  act_f='tanh', **kwargs):
         super(GNNModel, self).__init__()
         self.embed_dim = embed_dim
@@ -39,7 +39,7 @@ class GNNModel(torch.nn.Module):
 
     def forward(self, data, home, away):
         edge_index, edge_weight = data.edge_index, data.edge_weight
-        home, away = list(home), list(away)
+        # home, away = list(home), list(away)
         x = torch.tensor(list(range(data.n_teams)))
         x = self.item_embedding(x).reshape(-1, self.embed_dim)
 
@@ -55,7 +55,7 @@ class GNNModel(torch.nn.Module):
             else:
                 x = self.activation(self.conv_layers[i + 1](x, data.edge_index))
 
-        x = torch.cat([x[home], x[away]], dim=-1)
+        x = torch.cat([x[home], x[away]], dim=1)
 
         for i in range(self.n_dense):
             x = self.activation(self.lin_layers[i](x))

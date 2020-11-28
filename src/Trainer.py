@@ -12,32 +12,34 @@ from utils import update_win_lose_network, create_edge_index, update_node_time, 
 target_dim = 3
 
 
-def continuous_evaluation(data, model, epochs=100, lr=0.01, lr_discount=0.2, model_name="gnn", batch_size=9):
+def continuous_evaluation(data, model, epochs=100, lr=0.01, lr_discount=0.2, batch_size=9):
     print("Continuous evaluation")
-    train_function = train_cont_gnn
-    test_function = test_cont_gnn
-
-    if model_name == "flat":
-        return
+    train_function = train_cont
+    test_function = test_cont
 
     matches = data.matches.append(data.data_val, ignore_index=True)
     # matches = matches.append(data.data_test, ignore_index=True)
 
     for i in range(0, matches.shape[0], batch_size):
-        test_function(data, model, matches.iloc[i:i + batch_size])
+        test_function(data, model, matches.iloc[i:i + 10*batch_size])
         train_function(data, matches.head(i + batch_size), model, epochs,
-                       lr * (1 - lr_discount) ** int(i / batch_size / 50), batch_size)
+                       # lr * (1 - lr_discount) ** int(i / batch_size / 50),
+                       lr,
+                       batch_size)
         print("T:{}, train_loss:{:.5f}, train_acc:{:.5f}, val_loss={:.5f}, val_acc={:.5f}"
               .format(int(i / batch_size),
                       data.train_loss[-1],
                       data.train_accuracy[-1],
                       data.val_loss[-1],
                       data.val_accuracy[-1]))
-    acc = float(sum(data.val_accuracy)) / len(data.val_accuracy)
+    stable_point = int(len(data.val_accuracy)*0.1)
+    val_acc = data.val_accuracy[stable_point:]
+    acc = float(sum(val_acc)) / len(val_acc)
+    data.val_acc = acc
     print(acc)
 
 
-def train_cont_gnn(data, matches, model, epochs=100, lr=0.001, batch_size=9, print_info=False):
+def train_cont(data, matches, model, epochs=100, lr=0.001, batch_size=9, print_info=False):
     # criterion = nn.PoissonNLLLoss()
     criterion = nn.NLLLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -48,8 +50,8 @@ def train_cont_gnn(data, matches, model, epochs=100, lr=0.001, batch_size=9, pri
         loss_value = 0.0
         optimizer.zero_grad()
         for j in range(0, matches.shape[0], batch_size):
-            home, away, result = matches.iloc[j:j + batch_size]['home_team'].values.astype('int64'), \
-                                 matches.iloc[j:j + batch_size]['away_team'].values.astype('int64'), \
+            home, away, result = torch.from_numpy(matches.iloc[j:j + batch_size]['home_team'].values.astype('int64')), \
+                                 torch.from_numpy(matches.iloc[j:j + batch_size]['away_team'].values.astype('int64')), \
                                  torch.from_numpy(
                                      matches.iloc[j:j + batch_size]['lwd'].values.astype('int64').reshape(-1, ))
             # label = torch.zeros(result.shape[0], target_dim).scatter_(1, torch.tensor(result), 1)  # one-hot label for loss
@@ -83,11 +85,11 @@ def train_cont_gnn(data, matches, model, epochs=100, lr=0.001, batch_size=9, pri
     data.train_accuracy.append(sum(running_accuracy) / (matches.shape[0] * epochs))
 
 
-def test_cont_gnn(data, model, matches, mode="val"):
+def test_cont(data, model, matches, mode="val"):
     criterion = nn.NLLLoss()
 
-    home, away, label = matches['home_team'].values.astype('int64'), \
-                        matches['away_team'].values.astype('int64'), \
+    home, away, label = torch.from_numpy(matches['home_team'].values.astype('int64')), \
+                        torch.from_numpy(matches['away_team'].values.astype('int64')), \
                         torch.from_numpy(matches['lwd'].values.astype('int64').reshape(-1, ))
     with torch.no_grad():
         outputs = model(data, home, away)
@@ -327,7 +329,7 @@ def train_flat_model(data, model, epochs=100, lr=0.001, dataset="train", print_i
                                  torch.from_numpy(
                                      matches.iloc[j:j + batch_size]['lwd'].values.astype('int64').reshape(-1, ))
             # label = torch.zeros(result.shape[0], target_dim).scatter_(1, torch.tensor(result), 1)  # one-hot label for loss
-            outputs = model(home, away)
+            outputs = model(data, home, away)
             # loss = criterion(outputs, label.to(torch.float))
             loss = criterion(outputs, result)
             loss.backward()
@@ -367,7 +369,7 @@ def test_flat_model(data, model, data_type=None):
                         torch.from_numpy(matches['away_team'].values.astype('int64')), \
                         torch.from_numpy(matches['lwd'].values.astype('int64').reshape(-1, ))
     with torch.no_grad():
-        outputs = model(home, away)
+        outputs = model(data, home, away)
         loss = criterion(outputs, label).item()
 
         _, predicted = torch.max(outputs.data, 1)
