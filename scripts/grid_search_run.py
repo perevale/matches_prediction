@@ -23,7 +23,7 @@ def to_int(tup):
     return tuple(int(i) for i in tup)
 
 
-def get_results(parameters, acc_val, acc):
+def get_results():
     results = "model=|{}| EXP:|{}| embed_dim=|{}| n_conv=|{}| conv_dims=|{}| val accuracy:|{}| test accuracy:|{}|\n" \
         .format("Flat", exp_counter, parameters["embed_dim"], parameters["n_conv"],
                 parameters["conv_dims"], acc_val, acc)
