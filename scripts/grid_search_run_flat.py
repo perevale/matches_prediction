@@ -31,8 +31,8 @@ def get_results():
 
 parameters = load_from_pickle(parameters_filename)
 
-
-print(get_results())
+results = get_results()
+print(results)
 
 acc, acc_val = run_flat_cont(input_filename,
                              dir_prefix=sys.argv[3],
@@ -41,7 +41,8 @@ acc, acc_val = run_flat_cont(input_filename,
                              n_dense=int(parameters["n_dense"]),
                              dense_dims=to_int(parameters["dense_dims"]))
 
-print(get_results())
+results = get_results()
+print(results)
 
 with open(output_filename, "a+") as f:
-    f.write(get_results())
+    f.write(results)
