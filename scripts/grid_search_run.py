@@ -23,7 +23,7 @@ def to_int(tup):
     return tuple(int(i) for i in tup)
 
 
-def get_results():
+def get_results(parameters, acc_val, acc):
     results = "model=|{}| EXP:|{}| embed_dim=|{}| n_conv=|{}| conv_dims=|{}| val accuracy:|{}| test accuracy:|{}|\n" \
         .format("Flat", exp_counter, parameters["embed_dim"], parameters["n_conv"],
                 parameters["conv_dims"], acc_val, acc)
@@ -32,7 +32,8 @@ def get_results():
 
 parameters = load_from_pickle(parameters_filename)
 
-print(get_results)
+results = get_results()
+print(results)
 
 acc, acc_val = run_gnn_cont(input_filename,
                              dir_prefix=sys.argv[3],
@@ -41,7 +42,8 @@ acc, acc_val = run_gnn_cont(input_filename,
                              n_conv=int(parameters["n_conv"]),
                              conv_dims=to_int(parameters["conv_dims"]))
 
-print(get_results)
+results = get_results()
+print(results)
 
 with open(output_filename, "a+") as f:
-    f.write(get_results)
+    f.write(results)
