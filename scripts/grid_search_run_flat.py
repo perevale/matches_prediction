@@ -10,7 +10,8 @@ from utils import load_from_pickle
 exp_counter = sys.argv[1]
 parameters_filename = sys.argv[2]
 input_filename = sys.argv[3] + "data/GER1_all.csv"
-output_filename = "/home/perevale/thesis/results/results_flat.txt"
+model_name = "Flat"
+output_filename = "/home/perevale/thesis/results/results_{}.txt".format(model_name)
 
 acc, acc_val = 0, 0
 
@@ -24,8 +25,8 @@ def to_int(tup):
 
 
 def get_results():
-    results = "model=|{}| EXP:|{}| embed_dim=|{}| n_dense=|{}| dense_dims=|{}| val accuracy:|{}| test accuracy:|{}|\n" \
-        .format("Flat", exp_counter, parameters["embed_dim"], parameters["n_dense"],
+    results = "model|{}| EXP|{}| embed_dim|{}| n_dense|{}| dense_dims|{}| val accuracy|{}| test accuracy|{}|\n" \
+        .format(model_name, exp_counter, parameters["embed_dim"], parameters["n_dense"],
                 parameters["dense_dims"], acc_val, acc)
     return results
 

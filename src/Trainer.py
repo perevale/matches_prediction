@@ -21,7 +21,7 @@ def continuous_evaluation(data, model, epochs=100, lr=0.01, lr_discount=0.2, bat
     # matches = matches.append(data.data_test, ignore_index=True)
 
     for i in range(0, matches.shape[0], batch_size):
-        test_function(data, model, matches.iloc[i:i + 10*batch_size])
+        test_function(data, model, matches.iloc[i:i + 15*batch_size])
         train_function(data, matches.head(i + batch_size), model, epochs,
                        # lr * (1 - lr_discount) ** int(i / batch_size / 50),
                        lr,
