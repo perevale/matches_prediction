@@ -7,7 +7,8 @@ from GNNModel import GNNModel
 from PRDataset import PRDataset
 from PageRank import PageRank
 from LSTMModel import create_LSTM_model, cont_eval_LSTM, test_LSTM_model
-from utils import visualize_acc_loss, save_to_pickle, load_from_pickle, save_keras_model, visualize_cont_eval
+from utils import save_to_pickle, load_from_pickle, save_keras_model
+from visualization import visualize_acc_loss, visualize_cont_eval, visualize_embedding
 
 dir_prefix = "../"
 outfile = "{}data_{}_model_{}.{}"
@@ -146,8 +147,8 @@ def grid_search(filename, outfile):
 
 if __name__ == '__main__':
     # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont, 6: LSTM, 7: gnn batched,
-    # 8: flat cont, 9: vis cont
-    model_id = 9
+    # 8: flat cont, 9: vis cont, 10: vis embedding
+    model_id = 5
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
@@ -176,10 +177,15 @@ if __name__ == '__main__':
     elif model_id == 8:
         run_flat_cont(filename)
     elif model_id == 9:
-        file = "trained_example.pickle"
+        file = "../trained_example.pickle"
         data = load_from_pickle(file)
         file_to_save = outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png")
-        visualize_cont_eval(data, file_to_save)
+        visualize_cont_eval(data["data"], file_to_save)
+    elif model_id == 10:
+        file = "../trained_gnn.pickle"
+        data = load_from_pickle(file)
+        file_to_save = outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png")
+        visualize_embedding(data, file_to_save)
     elif model_id == 3:
         file = outfile.format(pickle_dir.format(dir_prefix), 0, exp_num, "pickle")
         data = load_from_pickle(file)

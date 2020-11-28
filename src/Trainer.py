@@ -5,6 +5,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
+log_base = 1.5
+val_batches = 72
 
 from utils import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight, update_edge_time, \
     calculate_edge_weight, update_edge_index
@@ -12,7 +14,7 @@ from utils import update_win_lose_network, create_edge_index, update_node_time, 
 target_dim = 3
 
 
-def continuous_evaluation(data, model, epochs=100, lr=0.01, lr_discount=0.2, batch_size=9):
+def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, batch_size=9):
     print("Continuous evaluation")
     train_function = train_cont
     test_function = test_cont
@@ -21,8 +23,9 @@ def continuous_evaluation(data, model, epochs=100, lr=0.01, lr_discount=0.2, bat
     # matches = matches.append(data.data_test, ignore_index=True)
 
     for i in range(0, matches.shape[0], batch_size):
-        test_function(data, model, matches.iloc[i:i + 15*batch_size])
-        train_function(data, matches.head(i + batch_size), model, epochs,
+        test_function(data, model, matches.iloc[i:i + val_batches*batch_size])
+        train_function(data, matches.head(i + batch_size), model,
+                       epochs+int(math.log(i+1, log_base)),
                        # lr * (1 - lr_discount) ** int(i / batch_size / 50),
                        lr,
                        batch_size)
@@ -76,12 +79,12 @@ def train_cont(data, matches, model, epochs=100, lr=0.001, batch_size=9, print_i
             print("Epoch:{}, train_loss:{:.5f}, train_acc:{:.5f}"
                   .format(epoch, loss_value, acc / (matches.shape[0])))
 
-        data.curr_time -= math.ceil(matches.shape[0] / batch_size)  # probably is sage to be set to 0 each epoch
+        data.curr_time -= math.ceil(matches.shape[0] / batch_size)  # probably is safe to be set to 0 each epoch
         running_loss.append(loss_value)
-        if epoch % 50 == 49:
-            for param_group in optimizer.param_groups:
-                param_group['lr'] *= 0.8
-    data.train_loss.append(sum(running_loss) / matches.shape[0])
+        # if epoch % 50 == 49:
+        #     for param_group in optimizer.param_groups:
+        #         param_group['lr'] *= 0.8
+    data.train_loss.append(sum(running_loss) / ((matches.shape[0]/batch_size)*epochs))
     data.train_accuracy.append(sum(running_accuracy) / (matches.shape[0] * epochs))
 
 

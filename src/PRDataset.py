@@ -63,7 +63,8 @@ class PRDataset():
                 train_loss=[],
                 train_accuracy=[],
                 val_loss=[],
-                val_accuracy=[]
+                val_accuracy=[],
+                teams_enc=teams_enc
             )
             data_list.append(data)
 

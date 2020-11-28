@@ -21,7 +21,7 @@ class GNNModel(torch.nn.Module):
         self.n_dense = n_dense
         self.activation = activations[act_f]
 
-        self.item_embedding = torch.nn.Embedding(num_embeddings=num_teams, embedding_dim=embed_dim)
+        self.embedding = torch.nn.Embedding(num_embeddings=num_teams, embedding_dim=embed_dim)
 
         self.conv_layers = []
 
@@ -41,7 +41,7 @@ class GNNModel(torch.nn.Module):
         edge_index, edge_weight = data.edge_index, data.edge_weight
         # home, away = list(home), list(away)
         x = torch.tensor(list(range(data.n_teams)))
-        x = self.item_embedding(x).reshape(-1, self.embed_dim)
+        x = self.embedding(x).reshape(-1, self.embed_dim)
 
         if len(edge_weight) > 0:
             x = self.conv_layers[0](x, edge_index, edge_weight )
