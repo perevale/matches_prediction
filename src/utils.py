@@ -246,3 +246,12 @@ def load_keras_model(filename):
     loaded_model = model_from_json(loaded_model_json)
     # load weights into new model
     loaded_model.load_weights(filename.format("h5"))
+
+
+def visualize_cont_eval(data, epochs, file_to_save):
+
+    pass
+
+
+def visualize_embedding(data, epochs, file_to_save):
+    pass

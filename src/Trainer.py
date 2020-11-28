@@ -76,7 +76,7 @@ def train_cont(data, matches, model, epochs=100, lr=0.001, batch_size=9, print_i
             print("Epoch:{}, train_loss:{:.5f}, train_acc:{:.5f}"
                   .format(epoch, loss_value, acc / (matches.shape[0])))
 
-        data.curr_time -= math.ceil(matches.shape[0] / batch_size)
+        data.curr_time -= math.ceil(matches.shape[0] / batch_size)  # probably is sage to be set to 0 each epoch
         running_loss.append(loss_value)
         if epoch % 50 == 49:
             for param_group in optimizer.param_groups:
