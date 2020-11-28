@@ -54,7 +54,7 @@ def run_flat_cont(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, *
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)
-        return data.test_accuracy
+        return data.test_accuracy, data.val_acc
 
 
 def run_LSTM_model(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **kwargs):
@@ -94,7 +94,7 @@ def run_gnn_cont(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)
-        return data.test_accuracy
+        return data.test_accuracy, data.val_acc
 
 
 def run_gnn_model(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **kwargs):

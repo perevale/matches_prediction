@@ -18,7 +18,7 @@ git clone -b exps/grid_search --single-branch https://github.com/perevale/matche
 
 #import all modules
 module add PyTorch-Geometric/1.6.0-fosscuda-2019b-Python-3.7.4-PyTorch-1.6.0
-module add TensorFlow/2.3.1-fosscuda-2020a-Python-3.8.2
+# module add TensorFlow/2.3.0-fosscuda-2019b-Python-3.7.4
 
 chmod -R 777 matches_prediction
 cd matches_prediction
