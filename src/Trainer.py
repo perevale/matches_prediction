@@ -35,8 +35,8 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
                       data.train_accuracy[-1],
                       data.val_loss[-1],
                       data.val_accuracy[-1]))
-    stable_point = int(len(data.val_accuracy)*0.1)
-    val_acc = data.val_accuracy #[stable_point:]
+    stable_point = int(len(data.val_accuracy)*0.05)
+    val_acc = data.val_accuracy[stable_point:]
     acc = float(sum(val_acc)) / len(val_acc)
     data.val_acc = acc
     print(acc)
