@@ -46,6 +46,7 @@ def train_cont(data, matches, model, epochs=100, lr=0.001, batch_size=9, print_i
     # criterion = nn.PoissonNLLLoss()
     criterion = nn.NLLLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
+    # optimizer = optim.SGD(model.parameters(), lr=lr)
     running_loss = []
     running_accuracy = []
     for epoch in range(epochs):

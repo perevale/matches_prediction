@@ -1,5 +1,5 @@
 import torch
-from torch.nn import Embedding, Linear, Dropout
+from torch.nn import Embedding, Linear, Dropout, ModuleList
 from torch.nn import LogSoftmax, ReLU, Tanh, LeakyReLU
 
 activations = {
@@ -25,11 +25,12 @@ class FlatModel(torch.nn.Module):
         else:
             self.embedding = Embedding(n_teams, embed_dim)
 
-        self.lin_layers = []
-        self.lin_layers.append(torch.nn.Linear(embed_dim * 2, dense_dims[0]))
+        lin_layers = []
+        lin_layers.append(torch.nn.Linear(embed_dim * 2, dense_dims[0]))
         for i in range(n_dense - 2):
-            self.lin_layers.append(torch.nn.Linear(dense_dims[i], dense_dims[i + 1]))
-        self.lin_layers.append(torch.nn.Linear(dense_dims[n_dense - 2], self.out_dim))
+            lin_layers.append(torch.nn.Linear(dense_dims[i], dense_dims[i + 1]))
+        lin_layers.append(torch.nn.Linear(dense_dims[n_dense - 2], self.out_dim))
+        self.lin_layers = ModuleList(lin_layers)
 
         self.out = LogSoftmax(dim=1)
 

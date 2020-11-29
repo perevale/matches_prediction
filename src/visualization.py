@@ -1,7 +1,7 @@
 import math
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-# from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA
 
 from utils import compute_embedding
 
@@ -105,8 +105,8 @@ def visualize_cont_eval(data, file_to_save):
     plt.xlabel("Time ticks")
     plt.ylabel("accuracy [%]")
 
-    legend_elements_1 = [Line2D([0], [0], label='Accuracy on training data', color=colors[0]),
-                         Line2D([0], [0], label='Accuracy on validation data', color=colors[1])
+    legend_elements_1 = [Line2D([0], [0], label='Loss on training data', color=colors[0]),
+                         Line2D([0], [0], label='Loss on validation data', color=colors[1])
                          ]
     ax[1].plot(data.train_loss, color=colors[0])
     ax[1].plot(data.val_loss, color=colors[1])
@@ -133,13 +133,13 @@ def visualize_cont_eval(data, file_to_save):
 
 
 
-def visualize_embedding(data, file_to_save):
-    x = compute_embedding(data['data'], data['model']).detach().numpy()
+def visualize_embedding(data, file_to_save, conv=True):
+    x = compute_embedding(data['data'], data['model'], conv).detach().numpy()
     pca = PCA(n_components=2)
     pca_result = pca.fit_transform(x)
     # plt.figure(figsize=(16, 10))
     plt.scatter(pca_result[:, 0], pca_result[:, 1])
-    for i, team in enumerate(data.teams_enc['teams']):
+    for i, team in enumerate(data['data'].teams_enc['teams']):
         plt.annotate(team, xy=(pca_result[i, 0], pca_result[i, 1]), size=8)
     plt.show()
 

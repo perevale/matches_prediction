@@ -177,15 +177,15 @@ if __name__ == '__main__':
     elif model_id == 8:
         run_flat_cont(filename)
     elif model_id == 9:
-        file = "../trained_example.pickle"
+        file = "../data_0_model_1018.pickle"
         data = load_from_pickle(file)
         file_to_save = outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png")
         visualize_cont_eval(data["data"], file_to_save)
     elif model_id == 10:
-        file = "../trained_gnn.pickle"
+        file = "../data_0_model_1018.pickle"
         data = load_from_pickle(file)
         file_to_save = outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png")
-        visualize_embedding(data, file_to_save)
+        visualize_embedding(data, file_to_save, conv=False)
     elif model_id == 3:
         file = outfile.format(pickle_dir.format(dir_prefix), 0, exp_num, "pickle")
         data = load_from_pickle(file)
