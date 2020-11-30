@@ -1,5 +1,5 @@
 import torch
-from torch.nn import LogSoftmax, ReLU, Tanh, LeakyReLU, ModuleList
+from torch.nn import LogSoftmax, ReLU, Tanh, LeakyReLU, ModuleList, Dropout
 from torch_geometric.nn import GCNConv
 
 target_dim = 3
@@ -12,7 +12,7 @@ activations = {
 
 
 class GNNModel(torch.nn.Module):
-    def __init__(self, num_teams, embed_dim=10, n_conv=3, conv_dims=(16, 16, 3, 16), n_dense=4, dense_dims=(16, 4, 16, 4),
+    def __init__(self, num_teams, embed_dim=10, n_conv=3, conv_dims=(16, 16, 3, 16), n_dense=4, dense_dims=(16, 16, 16, 4),
                  act_f='leaky', **kwargs):
         super(GNNModel, self).__init__()
         self.embed_dim = embed_dim
@@ -37,6 +37,8 @@ class GNNModel(torch.nn.Module):
         self.lin_layers = ModuleList(lin_layers)
 
         self.out = LogSoftmax(dim=1)
+        self.drop = Dropout(p=0.1)
+
 
     def forward(self, data, home, away):
         edge_index, edge_weight = data.edge_index, data.edge_weight
@@ -60,6 +62,7 @@ class GNNModel(torch.nn.Module):
 
         for i in range(self.n_dense):
             x = self.activation(self.lin_layers[i](x))
+            x = self.drop(x)
 
         x = self.out(x)
         return x.reshape(-1, target_dim)

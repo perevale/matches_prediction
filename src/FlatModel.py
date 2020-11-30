@@ -10,7 +10,7 @@ activations = {
 
 
 class FlatModel(torch.nn.Module):
-    def __init__(self, n_teams, out_dim=3, embed_dim=10, pretrained_weights=None, n_dense=4, dense_dims=(16,4,16,32),
+    def __init__(self, n_teams, out_dim=3, embed_dim=10, pretrained_weights=None, n_dense=4, dense_dims=(4,4,4,32),
                  act_f='leaky', **kwargs):
         super(FlatModel, self).__init__()
         # set hyperparameters for the model
@@ -43,7 +43,7 @@ class FlatModel(torch.nn.Module):
 
         for layer in self.lin_layers:
             x = self.activation(layer(x))
-            # x = self.drop(x)
+            x = self.drop(x)
 
         x = self.out(x)
         return x.reshape(-1, self.out_dim)
