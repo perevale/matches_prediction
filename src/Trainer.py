@@ -30,8 +30,8 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
                        model,
                        # epochs,
                        epochs+int(math.log(i+1, log_base)),
-                       lr * (1 - lr_discount) ** int(i / batch_size / 50),
-                       # lr,
+                       # lr * (1 - lr_discount) ** int(i / batch_size / 50),
+                       lr,
                        batch_size)
         print("T:{}, train_loss:{:.5f}, train_acc:{:.5f}, val_loss={:.5f}, val_acc={:.5f}"
               .format(int(i / batch_size),
