@@ -24,9 +24,11 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
 
     for i in range(0, matches.shape[0], batch_size):
         test_function(data, model, matches.iloc[i:i + val_batches*batch_size])
+        train_start_point = max(0, i-40*batch_size)
+        data.curr_time = train_start_point
         train_function(data,
                        # matches.head(i + batch_size),
-                       matches.iloc[max(0,i-30*batch_size):i + batch_size],
+                       matches.iloc[train_start_point:i + batch_size],
                        model,
                        # epochs,
                        epochs+int(math.log(i+1, log_base)),
