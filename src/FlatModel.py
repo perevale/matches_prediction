@@ -43,7 +43,7 @@ class FlatModel(torch.nn.Module):
 
         for layer in self.lin_layers:
             x = self.activation(layer(x))
-            # x = self.drop(x)
+            x = self.drop(x)
 
         x = self.out(x)
         return x.reshape(-1, self.out_dim)

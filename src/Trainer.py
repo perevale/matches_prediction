@@ -14,7 +14,7 @@ from utils import update_win_lose_network, create_edge_index, update_node_time, 
 target_dim = 3
 
 
-def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, batch_size=9):
+def continuous_evaluation(data, model, epochs=100, lr=0.0001, lr_discount=0.2, batch_size=9):
     print("Continuous evaluation")
     train_function = train_cont
     test_function = test_cont
@@ -24,11 +24,11 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
 
     for i in range(0, matches.shape[0], batch_size):
         test_function(data, model, matches.iloc[i:i + val_batches*batch_size])
-        train_start_point = max(0, i-40*batch_size)
-        data.curr_time = train_start_point
+        # train_start_point = max(0, i-40*batch_size)
+        # data.curr_time = train_start_point
         train_function(data,
-                       # matches.head(i + batch_size),
-                       matches.iloc[train_start_point:i + batch_size],
+                       matches.head(i + batch_size),
+                       # matches.iloc[train_start_point:i + batch_size],
                        model,
                        # epochs,
                        epochs+int(math.log(i+1, log_base)),
