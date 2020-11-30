@@ -24,7 +24,11 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
 
     for i in range(0, matches.shape[0], batch_size):
         test_function(data, model, matches.iloc[i:i + val_batches*batch_size])
-        train_function(data, matches.head(i + batch_size), model,
+        train_function(data,
+                       # matches.head(i + batch_size),
+                       matches.iloc[max(0,i-30*batch_size):i + batch_size],
+                       model,
+                       # epochs,
                        epochs+int(math.log(i+1, log_base)),
                        # lr * (1 - lr_discount) ** int(i / batch_size / 50),
                        lr,
@@ -348,7 +352,7 @@ def train_flat_model(data, model, epochs=100, lr=0.001, dataset="train", print_i
         test_flat_model(data, model, "val")
         if print_info:
             print("Epoch:{}, train_loss:{:.5f}, train_acc:{:.5f}, val_loss={:.5f}, val_acc={:.5f}"
-                  .format(epoch, loss_value, acc / (matches.shape[0]),
+                  .format(epoch, loss_value/(matches.shape[0]/batch_size), acc / (matches.shape[0]),
                           data.val_loss[-1],
                           data.val_accuracy[-1]
                           ))
@@ -357,7 +361,7 @@ def train_flat_model(data, model, epochs=100, lr=0.001, dataset="train", print_i
         if epoch % 50 == 49:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.8
-    data.train_loss.append(sum(running_loss) / matches.shape[0])
+    data.train_loss.append(sum(running_loss) / ((matches.shape[0]/batch_size)*epochs))
     data.train_accuracy.append(sum(running_accuracy) / (matches.shape[0] * epochs))
 
 
