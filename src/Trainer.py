@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
-log_base = 1.5
+log_base = 1.1
 val_batches = 72
 
 from utils import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight, update_edge_time, \
@@ -14,7 +14,7 @@ from utils import update_win_lose_network, create_edge_index, update_node_time, 
 target_dim = 3
 
 
-def continuous_evaluation(data, model, epochs=100, lr=0.0001, lr_discount=0.2, batch_size=9):
+def continuous_evaluation(data, model, epochs=100, lr=0.00001, lr_discount=0.2, batch_size=9):
     print("Continuous evaluation")
     train_function = train_cont
     test_function = test_cont
