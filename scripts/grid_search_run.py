@@ -25,9 +25,9 @@ def to_int(tup):
 
 
 def get_results():
-    results = "model|{}| EXP|{}| embed_dim|{}| n_conv|{}| conv_dims|{}| val accuracy|{}| test accuracy|{}|\n" \
+    results = "model|{}| EXP|{}| embed_dim|{}| n_conv|{}| conv_dims|{}| lr|{}| val accuracy|{}| test accuracy|{}|\n" \
         .format(model_name, exp_counter, parameters["embed_dim"], parameters["n_conv"],
-                parameters["conv_dims"], acc_val, acc)
+                parameters["conv_dims"], parameters["lr"], acc_val, acc)
     return results
 
 
@@ -39,6 +39,7 @@ print(results)
 acc, acc_val = run_gnn_cont(input_filename,
                              dir_prefix=sys.argv[3],
                              exp_num=int(exp_counter),
+                             lr=float(parameters["lr"]),
                              embed_dim=int(parameters["embed_dim"]),
                              n_conv=int(parameters["n_conv"]),
                              conv_dims=to_int(parameters["conv_dims"]))

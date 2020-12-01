@@ -41,7 +41,7 @@ def run_cut_flat_model(filename, dir_prefix="../", lr=(0.001, 0.001), exp_num=0,
         return data.test_accuracy
 
 
-def run_flat_cont(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **kwargs):
+def run_flat_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
     # ----------Flat------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
@@ -49,7 +49,7 @@ def run_flat_cont(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, *
     for i, data in enumerate(data_list):
         model = FlatModel(data.n_teams, **kwargs)
         print("Flat model")
-        continuous_evaluation(data, model, epochs[0], batch_size=9)
+        continuous_evaluation(data, model, epochs[0],lr=lr, batch_size=9)
         test_cont(data, model, data.data_test, "test")
         print("accuracy on testing data is: {}".format(data.test_accuracy))
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
@@ -81,7 +81,7 @@ def run_pr_model(filename):
         train_pr(data, model)
 
 
-def run_gnn_cont(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **kwargs):
+def run_gnn_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
@@ -89,7 +89,7 @@ def run_gnn_cont(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **
     for i, data in enumerate(data_list):
         model = GNNModel(data.n_teams, **kwargs)
         print("GNN model")
-        continuous_evaluation(data, model, epochs[0], batch_size=9)
+        continuous_evaluation(data, model, epochs[0],lr=lr, batch_size=9)
         test_cont(data, model, data.data_test, "test")
         print("accuracy on testing data is: {}".format(data.test_accuracy))
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
