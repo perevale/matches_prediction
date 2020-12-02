@@ -1,8 +1,8 @@
 import numpy as np
-# import tensorflow as tf
-# from tensorflow.keras.optimizers import Adam
-# from tensorflow.keras.layers import LSTM, Embedding, Dropout, Dense
-# from tensorflow.keras.models import Sequential
+# import keras
+# from keras.optimizers import Adam
+# from keras.layers import LSTM, Embedding, Dropout, Dense
+# from keras.models import Sequential
 
 
 def create_LSTM_model(n_teams, lstm_units=256, dropout_rate=0.2, input_length=2, batchsize=9):
@@ -12,8 +12,8 @@ def create_LSTM_model(n_teams, lstm_units=256, dropout_rate=0.2, input_length=2,
     model.add(Dropout(rate=dropout_rate))
     model.add(Dense(units=16))
     model.add(Dense(units=3, activation='softmax'))
-    model.compile(optimizer=Adam(lr=0.001), loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-                  metrics=[tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1)])
+    model.compile(optimizer=Adam(lr=0.001), loss=keras.losses.SparseCategoricalCrossentropy(),
+                  metrics=[keras.metrics.SparseTopKCategoricalAccuracy(k=1)])
     return model
 
 
@@ -38,7 +38,7 @@ def test_LSTM_model(data, model, X, y):
 
 
 def cont_eval_LSTM(data, model, epochs=10, lr_discount=0.2, lr=0.001, batch_size=9):
-    tf.keras.backend.clear_session()
+    keras.backend.clear_session()
 
     train_function = train_LSTM_model
     test_function = test_LSTM_model

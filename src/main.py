@@ -154,6 +154,7 @@ if __name__ == '__main__':
     # filename = "../data/0_test.csv"
     # filename = "../data/mini_data.csv"
     filename = "../data/GER1_all.csv"
+    filename = "../data/GER_second_half.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"

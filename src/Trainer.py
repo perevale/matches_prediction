@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import roc_auc_score
-log_base = 1.1
+log_base = 1.5
 val_batches = 72
 
 from utils import update_win_lose_network, create_edge_index, update_node_time, calculate_node_weight, update_edge_time, \
@@ -24,11 +24,11 @@ def continuous_evaluation(data, model, epochs=100, lr=0.0001, lr_discount=0.2, b
 
     for i in range(0, matches.shape[0], batch_size):
         test_function(data, model, matches.iloc[i:i + val_batches*batch_size])
-        # train_start_point = max(0, i-40*batch_size)
-        # data.curr_time = train_start_point
+        train_start_point = max(0, i-40*batch_size)
+        data.curr_time = train_start_point
         train_function(data,
-                       matches.head(i + batch_size),
-                       # matches.iloc[train_start_point:i + batch_size],
+                       # matches.head(i + batch_size),
+                       matches.iloc[train_start_point:i + batch_size],
                        model,
                        # epochs,
                        epochs+int(math.log(i+1, log_base)),
@@ -41,6 +41,8 @@ def continuous_evaluation(data, model, epochs=100, lr=0.0001, lr_discount=0.2, b
                       data.train_accuracy[-1],
                       data.val_loss[-1],
                       data.val_accuracy[-1]))
+        # for m in model.named_parameters():
+        #     print(sum(m))
     stable_point = int(len(data.val_accuracy)*0.05)
     val_acc = data.val_accuracy[stable_point:]
     acc = float(sum(val_acc)) / len(val_acc)
@@ -48,13 +50,14 @@ def continuous_evaluation(data, model, epochs=100, lr=0.0001, lr_discount=0.2, b
     print(acc)
 
 
-def train_cont(data, matches, model, epochs=100, lr=0.001, batch_size=9, print_info=False):
+def train_cont(data, matches, model, epochs=100, lr=0.0001, batch_size=9, print_info=False):
     # criterion = nn.PoissonNLLLoss()
     criterion = nn.NLLLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     # optimizer = optim.SGD(model.parameters(), lr=lr)
     running_loss = []
     running_accuracy = []
+    home_win = 0
     for epoch in range(epochs):
         acc = 0
         loss_value = 0.0
@@ -64,6 +67,7 @@ def train_cont(data, matches, model, epochs=100, lr=0.001, batch_size=9, print_i
                                  torch.from_numpy(matches.iloc[j:j + batch_size]['away_team'].values.astype('int64')), \
                                  torch.from_numpy(
                                      matches.iloc[j:j + batch_size]['lwd'].values.astype('int64').reshape(-1, ))
+            home_win+=(result==2).sum().item()
             # label = torch.zeros(result.shape[0], target_dim).scatter_(1, torch.tensor(result), 1)  # one-hot label for loss
             outputs = model(data, home, away)
             # loss = criterion(outputs, label.to(torch.float))
@@ -91,6 +95,7 @@ def train_cont(data, matches, model, epochs=100, lr=0.001, batch_size=9, print_i
         # if epoch % 50 == 49:
         #     for param_group in optimizer.param_groups:
         #         param_group['lr'] *= 0.8
+    print(home_win/(matches.shape[0] * epochs))
     data.train_loss.append(sum(running_loss) / ((matches.shape[0]/batch_size)*epochs))
     data.train_accuracy.append(sum(running_accuracy) / (matches.shape[0] * epochs))
 

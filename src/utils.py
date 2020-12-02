@@ -133,7 +133,7 @@ def calculate_edge_weight(data, time_weighting="linear"):
         if time_weighting == "linear":
             data.edge_weight = torch.tensor(1 - ((int(data.curr_time) - prev_edge_time) / data.N)).reshape(-1, ).float()
         elif time_weighting == "exponential":
-            data.edge_weight = torch.tensor(np.exp(int(data.curr_time) - prev_edge_time)).reshape(-1, )
+            data.edge_weight = torch.tensor(np.exp(int(data.curr_time) - prev_edge_time)).reshape(-1, ).float()
     else:
         data.edge_weight = torch.tensor([])
 
