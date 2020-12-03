@@ -12,7 +12,7 @@ activations = {
 
 
 class GNNModel(torch.nn.Module):
-    def __init__(self, num_teams, embed_dim=2, n_conv=3, conv_dims=(10, 10, 10, 16), n_dense=2, dense_dims=(10, 10, 10, 4),
+    def __init__(self, num_teams, embed_dim=10, n_conv=3, conv_dims=(16, 16, 16, 16), n_dense=2, dense_dims=(16, 16, 16, 4),
                  act_f='leaky', **kwargs):
         super(GNNModel, self).__init__()
         self.embed_dim = embed_dim
@@ -29,7 +29,7 @@ class GNNModel(torch.nn.Module):
         self.conv_layers = ModuleList(conv_layers)
 
         lin_layers = []
-        lin_layers.append(torch.nn.Linear(conv_dims[n_conv - 1] * 2, dense_dims[0]))
+        lin_layers.append(torch.nn.Linear(conv_dims[n_conv - 1]*2, dense_dims[0]))
         for i in range(n_dense - 2):
             lin_layers.append(torch.nn.Linear(dense_dims[i], dense_dims[i + 1]))
         lin_layers.append(torch.nn.Linear(dense_dims[n_dense - 2], target_dim))
@@ -51,16 +51,17 @@ class GNNModel(torch.nn.Module):
         else:
             x = self.conv_layers[0](x, edge_index)
         x = self.activation(x)
-        x = self.drop(x)
+        # x = self.drop(x)
 
         for i in range(self.n_conv - 1):
             if len(edge_weight) > 0:
                     x = self.activation(self.conv_layers[i + 1](x, data.edge_index, edge_weight))
             else:
                 x = self.activation(self.conv_layers[i + 1](x, data.edge_index))
-            x = self.drop(x)
+            # x = self.drop(x)
 
         x = torch.cat([x[home], x[away]], dim=1)
+        # x = torch.sub(x[home], x[away])
 
         for i in range(self.n_dense):
             x = self.activation(self.lin_layers[i](x))
