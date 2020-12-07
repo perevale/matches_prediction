@@ -41,7 +41,7 @@ def run_cut_flat_model(filename, dir_prefix="../", lr=(0.001, 0.001), exp_num=0,
         return data.test_accuracy
 
 
-def run_flat_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
+def run_flat_cont(filename, dir_prefix="../", lr=0.001, exp_num=0, **kwargs):
     # ----------Flat------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()

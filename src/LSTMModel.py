@@ -1,8 +1,8 @@
 import numpy as np
-import keras
-from keras.optimizers import Adam
-from keras.layers import LSTM, Embedding, Dropout, Dense
-from keras.models import Sequential
+# import keras
+# from keras.optimizers import Adam
+# from keras.layers import LSTM, Embedding, Dropout, Dense
+# from keras.models import Sequential
 
 
 def create_LSTM_model(n_teams, lstm_units=128, dropout_rate=0.2, input_length=2, batchsize=9):
