@@ -81,7 +81,7 @@ def run_pr_model(filename):
         train_pr(data, model)
 
 
-def run_gnn_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
+def run_gnn_cont(filename, dir_prefix="../", lr=0.001, exp_num=0, **kwargs):
     # ----------GNN------------------------------
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
@@ -156,6 +156,7 @@ if __name__ == '__main__':
     filename = "../data/GER1_all.csv"
     # filename = "../data/GER_second_half.csv"
     # filename = "../data/BRA1_all.csv"
+    filename = "../data/NHL.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"
