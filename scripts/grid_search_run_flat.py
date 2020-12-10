@@ -27,9 +27,9 @@ def to_int(tup):
 
 
 def get_results():
-    results = "model|{}| EXP|{}| embed_dim|{}| n_dense|{}| dense_dims|{}| val accuracy|{}| test accuracy|{}|\n" \
+    results = "model|{}| EXP|{}| embed_dim|{}| n_dense|{}| dense_dims|{}| lr|{}| val accuracy|{}| test accuracy|{}|\n" \
         .format(model_name, exp_counter, parameters["embed_dim"], parameters["n_dense"],
-                parameters["dense_dims"], acc_val, acc)
+                parameters["dense_dims"],parameters["lr"], acc_val, acc)
     return results
 
 parameters = load_from_pickle(parameters_filename)
@@ -42,7 +42,9 @@ acc, acc_val = run_flat_cont(input_filename,
                              exp_num=int(exp_counter),
                              embed_dim=int(parameters["embed_dim"]),
                              n_dense=int(parameters["n_dense"]),
-                             dense_dims=to_int(parameters["dense_dims"]))
+                             dense_dims=to_int(parameters["dense_dims"]),
+                             lr=float(parameters["lr"]
+                            ))
 
 results = get_results()
 print(results)

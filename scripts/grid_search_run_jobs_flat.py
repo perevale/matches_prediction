@@ -32,7 +32,7 @@ for e in embed_dim:
     for n in n_dense:
         for d in dims:
         # for a in activations:
-        #     for l in lr:
+            for l in lr:
                 parameters = {"embed_dim": e, "n_dense": n, "dense_dims":d}
                 filename = DIR+"/parameters_{}.pickle".format(exp_counter)
                 save_to_pickle(filename, parameters)
