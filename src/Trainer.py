@@ -24,6 +24,7 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
     else:
         matches = data.data_test
         test_acc = []
+        val_batches = 10
 
     for i in range(0, matches.shape[0], batch_size):
         test_function(data, model, matches.iloc[i:i + val_batches*batch_size])
@@ -49,14 +50,13 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
         if mode == "test":
             test_acc.append(data.val_accuracy[-1])
 
-    stable_point = int(len(data.val_accuracy)*0.05)
-    val_acc = data.val_accuracy[stable_point:]
-    acc = float(sum(val_acc)) / len(val_acc)
-    data.val_acc = acc
+    val_acc = data.val_accuracy[len(data.val_accuracy) - val_batches:]
+    data.val_acc = sum(val_acc)/len(val_acc)
+
     if mode == "test":
-        print(test_acc/len(test_acc))
+        print(sum(test_acc)/len(test_acc))
     else:
-        print(acc)
+        print(data.val_acc)
 
 
 def train_cont(data, matches, model, epochs=100, lr=0.0001, batch_size=9, print_info=False):
@@ -110,6 +110,7 @@ def train_cont(data, matches, model, epochs=100, lr=0.0001, batch_size=9, print_
 
 
 def test_cont(data, model, matches, mode="val"):
+    model.eval()
     criterion = nn.NLLLoss()
 
     home, away, label = torch.from_numpy(matches['home_team'].values.astype('int64')), \
@@ -126,6 +127,7 @@ def test_cont(data, model, matches, mode="val"):
         else:
             data.val_accuracy.append(float(correct) / matches.shape[0])
             data.val_loss.append(loss)
+    model.train()
 
 
 def train_gnn_model(data, model, epochs=100, lr=0.01, dataset="train", print_info=True):
