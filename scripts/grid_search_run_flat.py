@@ -11,8 +11,8 @@ exp_counter = sys.argv[1]
 parameters_filename = sys.argv[2]
 input_filename = sys.argv[3] + "data/GER_second_half.csv"
 input_filename = sys.argv[3] + "data/GER1_all.csv"
-input_filename = sys.argv[3] + "data/NHL.csv"
-model_name = "GNN_NHL"
+# input_filename = sys.argv[3] + "data/NHL.csv"
+model_name = "GNN"
 output_filename = "/home/perevale/thesis/results/results_{}.txt".format(model_name)
 
 acc, acc_val = 0, 0
