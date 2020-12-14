@@ -24,6 +24,7 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
     else:
         matches = data.data_test
         test_acc = []
+        global val_batches
         val_batches = 10
 
     for i in range(0, matches.shape[0], batch_size):
