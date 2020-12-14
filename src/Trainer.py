@@ -62,7 +62,7 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
 
 def train_cont(data, matches, model, epochs=100, lr=0.0001, batch_size=9, print_info=False):
     # criterion = nn.PoissonNLLLoss()
-    criterion = nn.NLLLoss()
+    criterion = nn.NLLLoss(weight=torch.tensor([1.6,1.9,1]))
     optimizer = optim.Adam(model.parameters(), lr=lr)
     # optimizer = optim.SGD(model.parameters(), lr=lr)
     running_loss = []
@@ -105,14 +105,14 @@ def train_cont(data, matches, model, epochs=100, lr=0.0001, batch_size=9, print_
         # if epoch % 50 == 49:
         #     for param_group in optimizer.param_groups:
         #         param_group['lr'] *= 0.8
-    print(home_win/(matches.shape[0] * epochs))
+    # print(home_win/(matches.shape[0] * epochs))
     data.train_loss.append(sum(running_loss) / ((matches.shape[0]/batch_size)*epochs))
     data.train_accuracy.append(sum(running_accuracy) / (matches.shape[0] * epochs))
 
 
 def test_cont(data, model, matches, mode="val"):
     model.eval()
-    criterion = nn.NLLLoss()
+    criterion = nn.NLLLoss(weight=torch.tensor([1.6,1.9,1]))
 
     home, away, label = torch.from_numpy(matches['home_team'].values.astype('int64')), \
                         torch.from_numpy(matches['away_team'].values.astype('int64')), \
@@ -130,6 +130,17 @@ def test_cont(data, model, matches, mode="val"):
             data.val_loss.append(loss)
     model.train()
 
+
+def predict(data, model, matches):
+    model.eval()
+    home, away, label = torch.from_numpy(matches['home_team'].values.astype('int64')), \
+                        torch.from_numpy(matches['away_team'].values.astype('int64')), \
+                        torch.from_numpy(matches['lwd'].values.astype('int64').reshape(-1, ))
+    with torch.no_grad():
+        outputs = model(data, home, away)
+    _, predicted = torch.max(outputs.data, 1)
+    model.train()
+    return predicted, label
 
 def train_gnn_model(data, model, epochs=100, lr=0.01, dataset="train", print_info=True):
     matches = data.matches

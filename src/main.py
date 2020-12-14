@@ -1,8 +1,7 @@
 from DataTransformer import DataTransformer
 from Dataset import Dataset
 from FlatModel import FlatModel
-from Trainer import train_gnn_model, test_gnn_model, correct_by_class, evaluate, train_pr, train_flat_model, \
-    test_flat_model, continuous_evaluation, test_cont, train_cont, test_pr
+from Trainer import *
 from GNNModel import GNNModel
 from PRDataset import PRDataset
 from PageRank import PageRank
@@ -98,7 +97,7 @@ def run_gnn_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
         save_to_pickle(file, data_to_save)
         return data.test_accuracy, data.val_acc
 
-def run_exist_model(model_file, dir_prefix="../", lr=0.001, exp_num=0, **kwargs):
+def run_exist_model(model_file, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
     m = load_from_pickle(model_file)
     data = m["data"]
     model = m["model"]
@@ -155,10 +154,25 @@ def grid_search(filename, outfile):
                               format(exp_counter, e, n, d, l, acc))
 
 
+def confusion_matrix(model_file):
+    from sklearn import metrics
+    m = load_from_pickle(model_file)
+    data = m["data"]
+    model = m["model"]
+    y_pred, y_true = predict(data, model, data.data_test)
+    y_pred, y_true = y_pred.numpy().astype('str'), y_true.numpy().astype('str')
+    y_pred[np.where(y_pred == '0')], y_true[np.where(y_true == '0')] = "home_loss", "home_loss"
+    y_pred[np.where(y_pred == '1')], y_true[np.where(y_true == '1')] = "draw", "draw"
+    y_pred[np.where(y_pred == '2')], y_true[np.where(y_true == '2')] = "home_win", "home_win"
+
+    print(metrics.confusion_matrix(y_true, y_pred))
+    print(metrics.classification_report(y_true, y_pred, digits=3))
+
+
 if __name__ == '__main__':
     # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont, 6: LSTM, 7: gnn batched,
-    # 8: flat cont, 9: vis cont, 10: vis embedding, 11: run_exist
-    model_id = 9
+    # 8: flat cont, 9: vis cont, 10: vis embedding, 11: run_exist, 12: confusion matrix
+    model_id = 5
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
@@ -190,7 +204,7 @@ if __name__ == '__main__':
     elif model_id == 8:
         run_flat_cont(filename)
     elif model_id == 9:
-        file = "../data_0_model_81.pickle"
+        file = "../data_0_model_154.pickle"
         data = load_from_pickle(file)
         file_to_save = outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png")
         visualize_cont_eval(data["data"], file_to_save)
@@ -206,3 +220,5 @@ if __name__ == '__main__':
                            outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png"))
     elif model_id == 11:
         run_exist_model("../data_0_model_81.pickle")
+    elif model_id == 12:
+        confusion_matrix("../data_0_model_135.pickle")

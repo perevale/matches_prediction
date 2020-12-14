@@ -26,7 +26,7 @@ dims = [(64, 32, 16, 8, 4),
         # (128, 128, 128, 128, 128)
         ]
 # activations = ['relu', 'tanh','leaky']
-lr = [0.0001, 0.00001]
+lr = [0.001, 0.0001]
 exp_counter = 1101
 for e in embed_dim:
     for n in n_dense:
