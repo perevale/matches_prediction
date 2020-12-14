@@ -33,7 +33,7 @@ for e in embed_dim:
         for d in dims:
         # for a in activations:
             for l in lr:
-                parameters = {"embed_dim": e, "n_dense": n, "dense_dims":d}
+                parameters = {"embed_dim": e, "n_dense": n, "dense_dims":d, "lr":l}
                 filename = DIR+"/parameters_{}.pickle".format(exp_counter)
                 save_to_pickle(filename, parameters)
                 command = "sbatch -o out_flat/slurm-%j.out --exclude=n33 train_flat.batch {} {} ".format(exp_counter, filename)

@@ -14,17 +14,20 @@ from utils import update_win_lose_network, create_edge_index, update_node_time, 
 target_dim = 3
 
 
-def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, batch_size=9):
+def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, batch_size=9, mode="val"):
     print("Continuous evaluation")
     train_function = train_cont
     test_function = test_cont
 
-    matches = data.matches.append(data.data_val, ignore_index=True)
-    # matches = matches.append(data.data_test, ignore_index=True)
+    if mode == "val":
+        matches = data.matches.append(data.data_val, ignore_index=True)
+    else:
+        matches = data.data_test
+        test_acc = []
 
     for i in range(0, matches.shape[0], batch_size):
         test_function(data, model, matches.iloc[i:i + val_batches*batch_size])
-        train_start_point = max(0, i-60*batch_size)
+        train_start_point = max(0, i-40*batch_size)
         data.curr_time = train_start_point
         train_function(data,
                        # matches.head(i + batch_size),
@@ -43,6 +46,8 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
                       data.val_accuracy[-1]))
         # for m in model.named_parameters():
         #     print(sum(m))
+        if mode == "test":
+            test_acc.append(data.val_accuracy[-1])
     stable_point = int(len(data.val_accuracy)*0.05)
     val_acc = data.val_accuracy[stable_point:]
     acc = float(sum(val_acc)) / len(val_acc)
@@ -300,11 +305,16 @@ def train_pr(data, model):
                                                                test_pr(data, model)))
 
 
-def test_pr(data, model):
+def test_pr(data, model, data_type="val"):
     correct = 0
     total = 0
-    with torch.no_grad():
+    matches = data.matches
+    if data_type == "val":
         matches = data.data_val
+    elif data_type == "test":
+        matches = data.data_test
+    with torch.no_grad():
+
         labels = torch.nn.functional.one_hot(torch.tensor(np.int64(matches['lwd'])).reshape(-1, 1),
                                              num_classes=len(np.unique(np.int64(matches['lwd']))))
 
@@ -319,8 +329,8 @@ def test_pr(data, model):
             total += 1
             correct += int(outputs == label)
 
-    # print('Accuracy of the network on the %s data: %.5f %%' % (data_type,
-    #                                                            100 * correct / total))
+    print('Accuracy of the network on the %s data: %.5f %%' % (data_type,
+                                                               100 * correct / total))
     accuracy = 100 * correct / total
     return accuracy
 

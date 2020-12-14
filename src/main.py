@@ -2,7 +2,7 @@ from DataTransformer import DataTransformer
 from Dataset import Dataset
 from FlatModel import FlatModel
 from Trainer import train_gnn_model, test_gnn_model, correct_by_class, evaluate, train_pr, train_flat_model, \
-    test_flat_model, continuous_evaluation, test_cont, train_cont
+    test_flat_model, continuous_evaluation, test_cont, train_cont, test_pr
 from GNNModel import GNNModel
 from PRDataset import PRDataset
 from PageRank import PageRank
@@ -50,8 +50,10 @@ def run_flat_cont(filename, dir_prefix="../", lr=0.001, exp_num=0, **kwargs):
         model = FlatModel(data.n_teams, **kwargs)
         print("Flat model")
         continuous_evaluation(data, model, epochs[0],lr=lr, batch_size=9)
+        model.eval()
         test_cont(data, model, data.data_test, "test")
         print("accuracy on testing data is: {}".format(data.test_accuracy))
+        model.train()
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)
@@ -79,6 +81,7 @@ def run_pr_model(filename):
     for i, data in enumerate(data_list):
         model = PageRank()
         train_pr(data, model)
+        test_pr(data, model, "test")
 
 
 def run_gnn_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
@@ -89,14 +92,25 @@ def run_gnn_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
     for i, data in enumerate(data_list):
         model = GNNModel(data.n_teams, **kwargs)
         print("GNN model")
-        continuous_evaluation(data, model, epochs[0],lr=lr, batch_size=5)
+        continuous_evaluation(data, model, epochs[0],lr=lr, batch_size=9)
+        model.eval()
         test_cont(data, model, data.data_test, "test")
         print("accuracy on testing data is: {}".format(data.test_accuracy))
+        model.train()
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)
         return data.test_accuracy, data.val_acc
 
+def run_exist_model(model_file, dir_prefix="../", lr=0.001, exp_num=0, **kwargs):
+    m = load_from_pickle(model_file)
+    data = m["data"]
+    model = m["model"]
+    epochs = [60]
+    model.eval()
+    test_cont(data, model, data.data_test, "test")
+    print("accuracy on testing data is: {}".format(data.test_accuracy))
+    continuous_evaluation(data, model, epochs[0], lr=lr, batch_size=9, mode="test")
 
 def run_gnn_model(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **kwargs):
     # ----------GNN------------------------------
@@ -147,8 +161,8 @@ def grid_search(filename, outfile):
 
 if __name__ == '__main__':
     # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont, 6: LSTM, 7: gnn batched,
-    # 8: flat cont, 9: vis cont, 10: vis embedding
-    model_id = 5
+    # 8: flat cont, 9: vis cont, 10: vis embedding, 11: run_exist
+    model_id = 11
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
@@ -156,7 +170,7 @@ if __name__ == '__main__':
     filename = "../data/GER1_all.csv"
     # filename = "../data/GER_second_half.csv"
     # filename = "../data/BRA1_all.csv"
-    filename = "../data/NHL.csv"
+    # filename = "../data/NHL.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"
@@ -194,3 +208,5 @@ if __name__ == '__main__':
         data = load_from_pickle(file)
         visualize_acc_loss(data["data"], data["epochs"],
                            outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png"))
+    elif model_id == 11:
+        run_exist_model("../data_0_model_81.pickle")
