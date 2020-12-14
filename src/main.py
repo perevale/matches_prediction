@@ -102,7 +102,7 @@ def run_gnn_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
         save_to_pickle(file, data_to_save)
         return data.test_accuracy, data.val_acc
 
-def run_exist_model(model_file, dir_prefix="../", lr=0.001, exp_num=0, **kwargs):
+def run_exist_model(model_file, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
     m = load_from_pickle(model_file)
     data = m["data"]
     model = m["model"]
@@ -199,10 +199,10 @@ if __name__ == '__main__':
         file_to_save = outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png")
         visualize_cont_eval(data["data"], file_to_save)
     elif model_id == 10:
-        file = "../data_0_model_1018.pickle"
+        file = "../data_0_model_81.pickle"
         data = load_from_pickle(file)
         file_to_save = outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png")
-        visualize_embedding(data, file_to_save, conv=False)
+        visualize_embedding(data, file_to_save, conv=True)
     elif model_id == 3:
         file = outfile.format(pickle_dir.format(dir_prefix), 0, exp_num, "pickle")
         data = load_from_pickle(file)

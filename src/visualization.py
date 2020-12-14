@@ -2,7 +2,7 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from sklearn.decomposition import PCA
-
+import numpy as np
 from utils import compute_embedding
 
 def visualize_acc_loss(data, epochs, file_to_save):
@@ -135,12 +135,18 @@ def visualize_cont_eval(data, file_to_save):
 
 def visualize_embedding(data, file_to_save, conv=True):
     x = compute_embedding(data['data'], data['model'], conv).detach().numpy()
-    pca = PCA(n_components=2)
+    pca = PCA(n_components=min(2, x.shape[1]))
     pca_result = pca.fit_transform(x)
     # plt.figure(figsize=(16, 10))
-    plt.scatter(pca_result[:, 0], pca_result[:, 1])
-    for i, team in enumerate(data['data'].teams_enc['teams']):
-        plt.annotate(team, xy=(pca_result[i, 0], pca_result[i, 1]), size=8)
+    if pca_result.shape[1]>1:
+        plt.scatter(pca_result[:, 0], pca_result[:, 1])
+        for i, team in enumerate(data['data'].teams_enc['teams']):
+            plt.annotate(team, xy=(pca_result[i, 0], pca_result[i, 1]), size=8)
+    else:
+        a = x[np.where(x[:, 0])]
+        plt.scatter(a, np.array([1.0 for i in a]))
+        for i, team in enumerate(data['data'].teams_enc['teams'][np.where(x[:, 0])[0]]):
+            plt.annotate(team, xy=(a[i, 0], 0.96+0.002*i), size=8)
     plt.show()
 
 def vis_val_acc(data, file_to_save):

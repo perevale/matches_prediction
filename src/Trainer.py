@@ -48,11 +48,15 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
         #     print(sum(m))
         if mode == "test":
             test_acc.append(data.val_accuracy[-1])
+
     stable_point = int(len(data.val_accuracy)*0.05)
     val_acc = data.val_accuracy[stable_point:]
     acc = float(sum(val_acc)) / len(val_acc)
     data.val_acc = acc
-    print(acc)
+    if mode == "test":
+        print(test_acc/len(test_acc))
+    else:
+        print(acc)
 
 
 def train_cont(data, matches, model, epochs=100, lr=0.0001, batch_size=9, print_info=False):

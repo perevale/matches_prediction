@@ -169,8 +169,6 @@ def load_keras_model(filename):
 
 
 def compute_embedding(data, model, conv=True):
-    # model.embedding = model.item_embedding  # TODO delete!!!
-
     x = torch.tensor(list(range(data.n_teams)))
     x = model.embedding(x)
     if conv:
