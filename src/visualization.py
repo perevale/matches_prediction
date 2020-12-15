@@ -118,6 +118,7 @@ def visualize_cont_eval(data, file_to_save):
     # plt.xticks(ticks, ticks_labels)
     plt.xlabel("Time ticks")
     plt.ylabel("loss")
+    plt.yscale("log")
 
 
 

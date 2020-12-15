@@ -172,7 +172,7 @@ def confusion_matrix(model_file):
 if __name__ == '__main__':
     # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont, 6: LSTM, 7: gnn batched,
     # 8: flat cont, 9: vis cont, 10: vis embedding, 11: run_exist, 12: confusion matrix
-    model_id = 5
+    model_id = 9
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
