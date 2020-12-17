@@ -62,7 +62,7 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
 
 def train_cont(data, matches, model, epochs=100, lr=0.0001, batch_size=9, print_info=False):
     # criterion = nn.PoissonNLLLoss()
-    criterion = nn.NLLLoss(weight=torch.tensor([1.6,1.95,1]))
+    criterion = nn.NLLLoss()  # weight=torch.tensor([1.6,1.95,1])
     optimizer = optim.Adam(model.parameters(), lr=lr)
     # optimizer = optim.SGD(model.parameters(), lr=lr)
     running_loss = []
@@ -112,7 +112,7 @@ def train_cont(data, matches, model, epochs=100, lr=0.0001, batch_size=9, print_
 
 def test_cont(data, model, matches, mode="val"):
     model.eval()
-    criterion = nn.NLLLoss(weight=torch.tensor([1.6,1.95,1]))
+    criterion = nn.NLLLoss()  # weight=torch.tensor([1.6,1.95,1])
 
     home, away, label = torch.from_numpy(matches['home_team'].values.astype('int64')), \
                         torch.from_numpy(matches['away_team'].values.astype('int64')), \

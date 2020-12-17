@@ -45,6 +45,8 @@ def run_flat_cont(filename, dir_prefix="../", lr=0.001, exp_num=0, **kwargs):
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
     epochs = [30]
+    test_acc = []
+    val_acc = []
     for i, data in enumerate(data_list):
         model = FlatModel(data.n_teams, **kwargs)
         print("Flat model")
@@ -54,7 +56,14 @@ def run_flat_cont(filename, dir_prefix="../", lr=0.001, exp_num=0, **kwargs):
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)
-        return data.test_accuracy, data.val_acc
+        test_acc.append(data.test_accuracy)
+        val_acc.append(data.val_acc)
+    test_accuracy = sum(test_acc)/len(test_acc)
+    val_accuracy = sum(val_acc)/len(val_acc)
+    file = outfile.format(pickle_dir.format(dir_prefix), "all", exp_num, "pickle")
+    data_to_save = {"test_acc":test_acc, "val_acc":val_acc}
+    save_to_pickle(file, data_to_save)
+    return test_accuracy, val_accuracy
 
 
 def run_LSTM_model(filename, dir_prefix="../", lr=(0.00001, 0.0001), exp_num=0, **kwargs):
@@ -86,6 +95,8 @@ def run_gnn_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
     dataset = PRDataset(filename=filename)
     data_list = dataset.process()
     epochs = [30]
+    test_acc = []
+    val_acc = []
     for i, data in enumerate(data_list):
         model = GNNModel(data.n_teams, **kwargs)
         print("GNN model")
@@ -95,7 +106,15 @@ def run_gnn_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
         file = outfile.format(pickle_dir.format(dir_prefix), i, exp_num, "pickle")
         data_to_save = {"data": data, "model": model, "epochs": epochs}
         save_to_pickle(file, data_to_save)
-        return data.test_accuracy, data.val_acc
+        test_acc.append(data.test_accuracy)
+        val_acc.append(data.val_acc)
+    test_accuracy = sum(test_acc) / len(test_acc)
+    val_accuracy = sum(val_acc) / len(val_acc)
+    file = outfile.format(pickle_dir.format(dir_prefix), "all", exp_num, "pickle")
+    data_to_save = {"test_acc": test_acc, "val_acc": val_acc}
+    save_to_pickle(file, data_to_save)
+    return test_accuracy, val_accuracy
+
 
 def run_exist_model(model_file, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
     m = load_from_pickle(model_file)
@@ -172,7 +191,7 @@ def confusion_matrix(model_file):
 if __name__ == '__main__':
     # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont, 6: LSTM, 7: gnn batched,
     # 8: flat cont, 9: vis cont, 10: vis embedding, 11: run_exist, 12: confusion matrix
-    model_id = 9
+    model_id = 8
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
@@ -181,6 +200,7 @@ if __name__ == '__main__':
     # filename = "../data/GER_second_half.csv"
     # filename = "../data/BRA1_all.csv"
     # filename = "../data/NHL.csv"
+    filename = "../data/soccer_all_leagues.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"
