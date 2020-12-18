@@ -47,9 +47,13 @@ def run_flat_cont(filename, dir_prefix="../", lr=0.001, exp_num=0, **kwargs):
     epochs = [30]
     test_acc = []
     val_acc = []
+    n_all_teams = 0
+    for data in data_list:
+        n_all_teams += data.n_teams
+    model = FlatModel(n_all_teams, **kwargs)
+
     for i, data in enumerate(data_list):
-        model = FlatModel(data.n_teams, **kwargs)
-        print("Flat model")
+        print("Flat model, data {}", i)
         continuous_evaluation(data, model, epochs[0],lr=lr, batch_size=9)
         test_cont(data, model, data.data_test, "test")
         print("accuracy on testing data is: {}".format(data.test_accuracy))
@@ -58,6 +62,7 @@ def run_flat_cont(filename, dir_prefix="../", lr=0.001, exp_num=0, **kwargs):
         save_to_pickle(file, data_to_save)
         test_acc.append(data.test_accuracy)
         val_acc.append(data.val_acc)
+
     test_accuracy = sum(test_acc)/len(test_acc)
     val_accuracy = sum(val_acc)/len(val_acc)
     file = outfile.format(pickle_dir.format(dir_prefix), "all", exp_num, "pickle")
@@ -97,8 +102,12 @@ def run_gnn_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
     epochs = [30]
     test_acc = []
     val_acc = []
+    n_all_teams = 0
+    for data in data_list:
+        n_all_teams += data.n_teams
+    model = GNNModel(n_all_teams, **kwargs)
+
     for i, data in enumerate(data_list):
-        model = GNNModel(data.n_teams, **kwargs)
         print("GNN model")
         continuous_evaluation(data, model, epochs[0],lr=lr, batch_size=9)
         test_cont(data, model, data.data_test, "test")
@@ -108,6 +117,7 @@ def run_gnn_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
         save_to_pickle(file, data_to_save)
         test_acc.append(data.test_accuracy)
         val_acc.append(data.val_acc)
+
     test_accuracy = sum(test_acc) / len(test_acc)
     val_accuracy = sum(val_acc) / len(val_acc)
     file = outfile.format(pickle_dir.format(dir_prefix), "all", exp_num, "pickle")
