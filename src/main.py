@@ -108,7 +108,7 @@ def run_gnn_cont(filename, dir_prefix="../", lr=0.0001, exp_num=0, **kwargs):
     model = GNNModel(n_all_teams, **kwargs)
 
     for i, data in enumerate(data_list):
-        print("GNN model")
+        print("GNN model, data {}", i)
         continuous_evaluation(data, model, epochs[0],lr=lr, batch_size=9)
         test_cont(data, model, data.data_test, "test")
         print("accuracy on testing data is: {}".format(data.test_accuracy))
@@ -201,7 +201,7 @@ def confusion_matrix(model_file):
 if __name__ == '__main__':
     # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont, 6: LSTM, 7: gnn batched,
     # 8: flat cont, 9: vis cont, 10: vis embedding, 11: run_exist, 12: confusion matrix
-    model_id = 8
+    model_id = 5
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
