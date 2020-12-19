@@ -188,7 +188,7 @@ def confusion_matrix(model_file):
     m = load_from_pickle(model_file)
     data = m["data"]
     model = m["model"]
-    y_pred, y_true = predict(data, model, data.data_test)
+    y_pred, y_true, prob = get_predictions(data, model, data.data_test)
     y_pred, y_true = y_pred.numpy().astype('str'), y_true.numpy().astype('str')
     y_pred[np.where(y_pred == '0')], y_true[np.where(y_true == '0')] = "home_loss", "home_loss"
     y_pred[np.where(y_pred == '1')], y_true[np.where(y_true == '1')] = "draw", "draw"
@@ -198,10 +198,16 @@ def confusion_matrix(model_file):
     print(metrics.classification_report(y_true, y_pred, digits=3))
 
 
+def calculate_rps(model_file):
+    m = load_from_pickle(model_file)
+    data = m["data"]
+    model = m["model"]
+    get_rps(data, model, data.data_test)
+
 if __name__ == '__main__':
     # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont, 6: LSTM, 7: gnn batched,
-    # 8: flat cont, 9: vis cont, 10: vis embedding, 11: run_exist, 12: confusion matrix
-    model_id = 5
+    # 8: flat cont, 9: vis cont, 10: vis embedding, 11: run_exist, 12: confusion matrix, 13: rps
+    model_id = 13
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
@@ -252,3 +258,5 @@ if __name__ == '__main__':
         run_exist_model("../data_0_model_81.pickle")
     elif model_id == 12:
         confusion_matrix("../data_0_model_135.pickle")
+    elif model_id == 13:
+        calculate_rps("../data_0_model_135.pickle")

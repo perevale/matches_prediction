@@ -111,36 +111,41 @@ def train_cont(data, matches, model, epochs=100, lr=0.0001, batch_size=9, print_
 
 
 def test_cont(data, model, matches, mode="val"):
-    model.eval()
     criterion = nn.NLLLoss()  # weight=torch.tensor([1.6,1.95,1])
 
-    home, away, label = torch.from_numpy(matches['home_team'].values.astype('int64')), \
-                        torch.from_numpy(matches['away_team'].values.astype('int64')), \
-                        torch.from_numpy(matches['lwd'].values.astype('int64').reshape(-1, ))
-    with torch.no_grad():
-        outputs = model(data, home, away)
-        loss = criterion(outputs, label).item()
+    predicted, label, outputs = get_predictions(data, model, matches)
 
-        _, predicted = torch.max(outputs.data, 1)
-        correct = int((predicted == label).sum().item())
-        if mode == "test":
-            data.test_accuracy = float(correct) / matches.shape[0]
-        else:
-            data.val_accuracy.append(float(correct) / matches.shape[0])
-            data.val_loss.append(loss)
-    model.train()
+    loss = criterion(outputs, label).item()
+
+    correct = int((predicted == label).sum().item())
+    if mode == "test":
+        data.test_accuracy = float(correct) / matches.shape[0]
+    else:
+        data.val_accuracy.append(float(correct) / matches.shape[0])
+        data.val_loss.append(loss)
 
 
-def predict(data, model, matches):
+def get_predictions(data, model, matches):
+    outputs, label = get_probabilities(data, model, matches)
+    _, predicted = torch.max(outputs.data, 1)
+    return predicted, label, outputs
+
+
+def get_probabilities(data, model, matches):
     model.eval()
     home, away, label = torch.from_numpy(matches['home_team'].values.astype('int64')), \
                         torch.from_numpy(matches['away_team'].values.astype('int64')), \
                         torch.from_numpy(matches['lwd'].values.astype('int64').reshape(-1, ))
     with torch.no_grad():
         outputs = model(data, home, away)
-    _, predicted = torch.max(outputs.data, 1)
     model.train()
-    return predicted, label
+    return outputs, label
+
+
+def get_rps(data, model, matches):
+    outputs, label = get_probabilities(data, model, matches)
+    o_h_label = torch.zeros(label.shape[0], target_dim).scatter_(1, torch.tensor(label), 1)  # one-hot label for loss
+    
 
 def train_gnn_model(data, model, epochs=100, lr=0.01, dataset="train", print_info=True):
     matches = data.matches
