@@ -202,12 +202,13 @@ def calculate_rps(model_file):
     m = load_from_pickle(model_file)
     data = m["data"]
     model = m["model"]
-    get_rps(data, model, data.data_test)
+    rps = get_rps(data, model, data.data_test)
+    print(torch.mean(rps).item())
 
 if __name__ == '__main__':
     # 0:Flat, 1:PageRank, 2: GNN, 3: visualization, 4: grid search on gnn, 5: gnn cont, 6: LSTM, 7: gnn batched,
     # 8: flat cont, 9: vis cont, 10: vis embedding, 11: run_exist, 12: confusion matrix, 13: rps
-    model_id = 13
+    model_id = 5
     exp_num = "0"
     filename = "../data/GER1_2001.csv"
     # filename = "../data/0_test.csv"
@@ -216,7 +217,7 @@ if __name__ == '__main__':
     # filename = "../data/GER_second_half.csv"
     # filename = "../data/BRA1_all.csv"
     # filename = "../data/NHL.csv"
-    filename = "../data/soccer_all_leagues.csv"
+    # filename = "../data/soccer_all_leagues.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"
@@ -245,7 +246,7 @@ if __name__ == '__main__':
         file_to_save = outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png")
         visualize_cont_eval(data["data"], file_to_save)
     elif model_id == 10:
-        file = "../data_0_model_81.pickle"
+        file = "../data_0_model_154.pickle"
         data = load_from_pickle(file)
         file_to_save = outfile.format(images_dir.format(dir_prefix), 0, exp_num, "png")
         visualize_embedding(data, file_to_save, conv=True)
@@ -259,4 +260,4 @@ if __name__ == '__main__':
     elif model_id == 12:
         confusion_matrix("../data_0_model_135.pickle")
     elif model_id == 13:
-        calculate_rps("../data_0_model_135.pickle")
+        calculate_rps("../data_0_model_154.pickle")

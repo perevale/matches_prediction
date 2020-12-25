@@ -25,7 +25,7 @@ def continuous_evaluation(data, model, epochs=100, lr=0.001, lr_discount=0.2, ba
         matches = data.data_test
         test_acc = []
         global val_batches
-        val_batches = 10
+        val_batches = 1
 
     for i in range(0, matches.shape[0], batch_size):
         test_function(data, model, matches.iloc[i:i + val_batches*batch_size])
@@ -127,7 +127,7 @@ def test_cont(data, model, matches, mode="val"):
 
 def get_predictions(data, model, matches):
     outputs, label = get_probabilities(data, model, matches)
-    _, predicted = torch.max(outputs.data, 1)
+    _, predicted = torch.max(torch.exp(outputs.data), 1)
     return predicted, label, outputs
 
 
@@ -144,8 +144,15 @@ def get_probabilities(data, model, matches):
 
 def get_rps(data, model, matches):
     outputs, label = get_probabilities(data, model, matches)
-    o_h_label = torch.zeros(label.shape[0], target_dim).scatter_(1, torch.tensor(label), 1)  # one-hot label for loss
-    
+    _, predicted = torch.max(outputs.data, 1)
+    o_h_label = torch.zeros(label.shape[0], target_dim).scatter_(1, label.reshape(-1,1), 1)  # one-hot label for loss
+    outputs = torch.exp(outputs)
+    sub = torch.zeros((label.shape[0]))
+    for i in range(target_dim):
+        sub += torch.pow(torch.sum(outputs[:,:i+1], 1) - torch.sum(o_h_label[:,:i+1], 1), 2)
+    rps = sub/(target_dim-1)
+    return rps
+
 
 def train_gnn_model(data, model, epochs=100, lr=0.01, dataset="train", print_info=True):
     matches = data.matches

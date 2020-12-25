@@ -135,14 +135,18 @@ def visualize_cont_eval(data, file_to_save):
 
 
 def visualize_embedding(data, file_to_save, conv=True):
+    from adjustText import adjust_text
     x = compute_embedding(data['data'], data['model'], conv).detach().numpy()
     pca = PCA(n_components=min(2, x.shape[1]))
     pca_result = pca.fit_transform(x)
     # plt.figure(figsize=(16, 10))
     if pca_result.shape[1]>1:
         plt.scatter(pca_result[:, 0], pca_result[:, 1])
+        texts = []
         for i, team in enumerate(data['data'].teams_enc['teams']):
-            plt.annotate(team, xy=(pca_result[i, 0], pca_result[i, 1]), size=8)
+            texts.append(plt.text(pca_result[i, 0], pca_result[i, 1],team))
+            # plt.annotate(team, xy=(pca_result[i, 0], pca_result[i, 1]), size=8)
+        adjust_text(texts,arrowprops=dict(arrowstyle='-', color='red'))
     else:
         a = x[np.where(x[:, 0])]
         plt.scatter(a, np.array([1.0 for i in a]))
