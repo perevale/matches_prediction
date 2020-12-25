@@ -217,7 +217,7 @@ if __name__ == '__main__':
     # filename = "../data/GER_second_half.csv"
     # filename = "../data/BRA1_all.csv"
     # filename = "../data/NHL.csv"
-    # filename = "../data/soccer_all_leagues.csv"
+    filename = "../data/soccer_all_leagues.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"

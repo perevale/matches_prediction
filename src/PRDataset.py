@@ -24,7 +24,7 @@ class PRDataset():
             data_train, data_val, data_test, data_test_final, teams_enc = dt.prepare_data(data=group)
             n_teams = len(teams_enc['teams'].values)
             # win_lose_network = [{'won': set(), 'lost': set()} for _ in range(dt.n_teams)]
-            win_lose_network = np.zeros((n_teams, 2, n_teams))
+            win_lose_network = np.zeros((dt.n_teams, 2, dt.n_teams))
 
             # random_list = [x/1000 for x in random.sample(range(0, 1000), len(teams_enc['teams'].values))]
             # node_features = torch.FloatTensor(random_list).unsqueeze(1)
@@ -32,20 +32,20 @@ class PRDataset():
 
             # x = node_features
             # x = torch.tensor(teams_enc['label_encoding'].values).to(torch.int64)
-            x = torch.ones(n_teams).reshape(-1, 1)
+            x = torch.ones(dt.n_teams).reshape(-1, 1)
             # y = torch.FloatTensor([group.lwd.values])
 
-            edge_time = np.empty((n_teams, n_teams))
+            edge_time = np.empty((dt.n_teams, dt.n_teams))
             edge_time[:] = None
 
-            node_time = np.zeros(n_teams)
+            node_time = np.zeros(dt.n_teams)
 
             won = data_test[data_test['result'] == "W"].shape[0]
             lost = data_test[data_test['result'] == "L"].shape[0]
             draw = data_test[data_test['result'] == "D"].shape[0]
 
             data = Data(
-                x=x,
+                # x=x,
                 edge_index=torch.tensor([]).reshape(2,-1).long(),
                 edge_weight=torch.tensor([]),
                 matches=data_train,

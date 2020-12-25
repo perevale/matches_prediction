@@ -12,7 +12,7 @@ activations = {
 
 
 class GNNModel(torch.nn.Module):
-    def __init__(self, num_teams, embed_dim=10, n_conv=3, conv_dims=(128, 128, 128, 16), n_dense=5, dense_dims=(8, 8, 8, 8,8),
+    def __init__(self, num_teams, embed_dim=10, n_conv=3, conv_dims=(32, 32, 32, 16), n_dense=5, dense_dims=(8, 8, 8, 8,8),
                  act_f='leaky', **kwargs):
         super(GNNModel, self).__init__()
         self.embed_dim = embed_dim

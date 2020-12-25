@@ -31,7 +31,7 @@ dims = [
         ]
 # activations = ['relu', 'tanh','leaky']
 lr = [0.001, 0.0001]
-exp_counter = 301
+exp_counter = 401
 for e in embed_dim:
     for n in n_conv:
         for d in dims:

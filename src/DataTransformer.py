@@ -10,15 +10,18 @@ names = ['year', 'league', 'time', 'home_team', 'away_team', 'home_score', 'away
 
 class DataTransformer:
     def __init__(self, filename: str):
+        self.label_encoder = LabelEncoder()
         self.filename = filename
         self.data = None
         self.data_train = None
         self.data_val = None
         self.data_test = None
+        self.n_teams = None
 
         self.read_data()
         self.data = self.clean_data(self.data)
         self.N = self.data.shape[0]
+        self.fit_encoder()
         # self.prepare_data()
 
     def read_data(self):
@@ -44,21 +47,35 @@ class DataTransformer:
             data = self.data.to_numpy()
         return data
 
-    def prepare_data(self, data=None, split_to_test=True, save_to_self=False):
-        if data is None:
-            data = self.data
+    def fit_encoder(self):
+        data = self.data
         data = data.to_numpy()
-        teams = np.unique(data[:, [3,4]])
+        teams = np.unique(data[:, [3, 4]])
+        self.n_teams = len(teams)
+        X = data[:, [3, 4]]
+        X = X.flatten()
+        self.label_encoder.fit(X)
+
+    def encode_teams(self, data):
+        data = data.to_numpy()
+        teams = np.unique(data[:, [3, 4]])
         # self.n_teams = len(teams)
         X = data[:, [3, 4]]
 
         X = X.flatten()
-        label_encoder = LabelEncoder()
-        X = label_encoder.fit_transform(X)
-        teams_encoded = label_encoder.fit_transform(teams)
-        teams_encoded = pd.DataFrame({'teams':teams, 'label_encoding':teams_encoded})
+        X = self.label_encoder.transform(X)
+        teams_encoded = self.label_encoder.transform(teams)
+        teams_encoded = pd.DataFrame({'teams': teams, 'label_encoding': teams_encoded})
 
         data[:, [3, 4]] = np.reshape(X, (-1, 2))
+        return data, teams_encoded
+
+
+    def prepare_data(self, data=None, split_to_test=True, save_to_self=False):
+        if data is None:
+            data = self.data
+
+        data, teams_encoded = self.encode_teams(data)
 
         if split_to_test:
             separator_val = int(data.__len__() * 0.8)
