@@ -89,13 +89,13 @@ def visualize_cont_eval(data, file_to_save):
     legend_elements_0 = [Line2D([0], [0], label='Accuracy on training data', color=colors[0]),
                          Line2D([0], [0], label='Accuracy on validation data', color=colors[1]),
                          Line2D([0], [0], color=colors[2], label='Accuracy on testing data'),
-                         Line2D([0], [0], color=colors[3], label='Average accuracy on validation data', ls='--')
+                         # Line2D([0], [0], color=colors[3], label='Average accuracy on validation data', ls='--')
                          ]
 
     ax[0].plot([i*100 for i in data.train_accuracy], color=colors[0])
     ax[0].plot([i*100 for i in data.val_accuracy], color=colors[1])
     ax[0].hlines(data.test_accuracy*100, 0, len(data.train_accuracy), colors=colors[2])
-    ax[0].hlines(data.val_acc*100, 0, len(data.train_accuracy), ls='--', colors=colors[3])
+    # ax[0].hlines(data.val_acc*100, 0, len(data.train_accuracy), ls='--', colors=colors[3])
     lg_0 = ax[0].legend(bbox_to_anchor=(0.2, -0.55), loc='lower left',
                         ncol=1, borderaxespad=-0.3, handles=legend_elements_0)
     ax[0].title.set_text('Accuracy')

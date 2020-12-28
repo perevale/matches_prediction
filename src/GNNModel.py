@@ -44,7 +44,11 @@ class GNNModel(torch.nn.Module):
     def forward(self, data, home, away):
         edge_index, edge_weight = data.edge_index, data.edge_weight
         # home, away = list(home), list(away)
-        x = torch.tensor(list(range(self.num_teams)))
+        if hasattr(self, 'num_teams'):
+            num_teams = self.num_teams
+        else:
+            num_teams = data.n_teams
+        x = torch.tensor(list(range(num_teams)))
         x = self.embedding(x).reshape(-1, self.embed_dim)
 
         if len(edge_weight) > 0:

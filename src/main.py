@@ -216,8 +216,8 @@ if __name__ == '__main__':
     filename = "../data/GER1_all.csv"
     # filename = "../data/GER_second_half.csv"
     # filename = "../data/BRA1_all.csv"
-    # filename = "../data/NHL.csv"
-    filename = "../data/soccer_all_leagues.csv"
+    filename = "../data/NHL.csv"
+    # filename = "../data/soccer_all_leagues.csv"
 
     # outfile = "{}data_{}_model_{}.{}"
     # pickle_dir = "../data/models/"
@@ -258,6 +258,8 @@ if __name__ == '__main__':
     elif model_id == 11:
         run_exist_model("../data_0_model_81.pickle")
     elif model_id == 12:
-        confusion_matrix("../data_0_model_135.pickle")
+        confusion_matrix("../data_0_model_254.pickle")
     elif model_id == 13:
+
+        calculate_rps("../data_all_model_317.pickle")
         calculate_rps("../data_0_model_154.pickle")
