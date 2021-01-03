@@ -1,6 +1,6 @@
 import torch
 from torch.nn import LogSoftmax, ReLU, Tanh, LeakyReLU, ModuleList, Dropout
-from torch_geometric.nn import GCNConv, GraphConv
+from torch_geometric.nn import GCNConv, GraphConv, ChebConv
 
 target_dim = 3
 
@@ -43,7 +43,6 @@ class GNNModel(torch.nn.Module):
 
     def forward(self, data, home, away):
         edge_index, edge_weight = data.edge_index, data.edge_weight
-        # home, away = list(home), list(away)
         if hasattr(self, 'num_teams'):
             num_teams = self.num_teams
         else:

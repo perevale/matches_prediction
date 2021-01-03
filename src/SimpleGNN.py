@@ -1,7 +1,6 @@
 import torch
 from torch_geometric.nn import GCNConv
 from torch import sigmoid as act, sign
-import numpy as np
 
 
 class PageRank(torch.nn.Module):

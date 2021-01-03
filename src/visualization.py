@@ -6,6 +6,13 @@ import numpy as np
 from utils import compute_embedding
 
 def visualize_acc_loss(data, epochs, file_to_save):
+    """
+    Visualize the training, validation and testing accuracy and loss for fixed training
+    :param data: input data
+    :param epochs:
+    :param file_to_save:
+    :return:
+    """
     area_labels = ["Training on training data", "Training on validation data"]
     colors = ['bisque', 'powderblue', 'lime']
     epochs_total = epochs[0] + epochs[1]
@@ -61,6 +68,11 @@ def visualize_acc_loss(data, epochs, file_to_save):
 
 
 def create_ticks(epochs):
+    """
+    A util function for creating non-clashing ticks
+    :param epochs:
+    :return: ticks and tick labels
+    """
     epochs_total = epochs[0] + epochs[1]
     step = math.ceil(epochs_total / 10)
     separator = epochs[0] - 1
@@ -84,6 +96,12 @@ def create_ticks(epochs):
 
 
 def visualize_cont_eval(data, file_to_save):
+    """
+    Visualize the training, validation and testing accuracy and loss for continuous evaluation
+    :param data:
+    :param file_to_save:
+    :return:
+    """
     colors = ['gold', 'royalblue', 'lime', 'silver']
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
     legend_elements_0 = [Line2D([0], [0], label='Accuracy on training data', color=colors[0]),
@@ -114,17 +132,12 @@ def visualize_cont_eval(data, file_to_save):
                         ncol=1, borderaxespad=-0.3, handles=legend_elements_1)
     ax[1].title.set_text('Loss')
     plt.sca(ax[1])
-    # ticks, ticks_labels = create_ticks(epochs)
-    # plt.xticks(ticks, ticks_labels)
     plt.xlabel("Time ticks")
     plt.ylabel("loss")
     plt.yscale("log")
 
-
-
     fig.tight_layout()
     plt.savefig(file_to_save,
-                # bbox_extra_artists=(lg_0),
                 format='png',
                 bbox_inches='tight'
                 )
@@ -135,6 +148,13 @@ def visualize_cont_eval(data, file_to_save):
 
 
 def visualize_embedding(data, file_to_save, conv=True):
+    """
+    Embedding visualization using PCA
+    :param data:
+    :param file_to_save:
+    :param conv:
+    :return:
+    """
     from adjustText import adjust_text
     x = compute_embedding(data['data'], data['model'], conv).detach().numpy()
     pca = PCA(n_components=min(2, x.shape[1]))
@@ -153,6 +173,3 @@ def visualize_embedding(data, file_to_save, conv=True):
         for i, team in enumerate(data['data'].teams_enc['teams'][np.where(x[:, 0])[0]]):
             plt.annotate(team, xy=(a[i, 0], 0.96+0.002*i), size=8)
     plt.show()
-
-def vis_val_acc(data, file_to_save):
-    pass
