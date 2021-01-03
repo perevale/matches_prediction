@@ -27,3 +27,13 @@ The user has to check the following parameters before running the functions:
 
 
 Some of the functions (marked under "Unused functions") are saved from previous experiments, are not updated and should not be taking into consideration when reviewing the code.
+
+The requirements to run the project are listed in the ```requirement.txt```.
+
+The instructions to the install the PyTorch Geometric after the installation of a new conda environment:
+
+    pip install pytorch  
+    pip install torch-scatter==latest+cpu torch-sparse==latest+cpu -f https://pytorch-geometric.com/whl/torch-1.6.0.html  
+    pip install torch-geometric
+
+
