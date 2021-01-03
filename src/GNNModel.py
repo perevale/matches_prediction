@@ -1,65 +1,75 @@
-embed_dim = 3
-target_dim = 3
 import torch
-from torch_geometric.nn import GraphConv, TopKPooling, GatedGraphConv
-from torch_geometric.nn import global_mean_pool as gap, global_max_pool as gmp
-import torch.nn.functional as F
-import numpy as np
-from src.SAGEConv import SAGEConv
-from torch_geometric.nn import GCNConv, ClusterGCNConv
-from torch.nn import LogSoftmax
+from torch.nn import LogSoftmax, ReLU, Tanh, LeakyReLU, ModuleList, Dropout
+from torch_geometric.nn import GCNConv, GraphConv, ChebConv
 
-from src.utils import calculate_edge_weight, get_neighbour_edge_index
+target_dim = 3
+
+activations = {
+    'relu': ReLU(),
+    'tanh': Tanh(),
+    'leaky': LeakyReLU()
+}
 
 
 class GNNModel(torch.nn.Module):
-    def __init__(self, num_teams):
+    def __init__(self, num_teams, embed_dim=10, n_conv=3, conv_dims=(32, 32, 32, 16), n_dense=5, dense_dims=(8, 8, 8, 8,8),
+                 act_f='leaky', **kwargs):
         super(GNNModel, self).__init__()
-        self.conv1 = ClusterGCNConv(embed_dim, 3)
-        self.conv1 = GCNConv(embed_dim, 2)
-        self.conv2 = GCNConv(2, 2)
+        self.embed_dim = embed_dim
+        self.n_conv = n_conv
+        self.conv_dims = conv_dims
+        self.n_dense = n_dense
+        self.activation = activations[act_f]
+        self.num_teams = num_teams
 
-        # self.conv1 = SAGEConv(embed_dim, 128)
-        self.pool1 = TopKPooling(128, ratio=0.8)
-        # self.conv2 = SAGEConv(128, 128)
-        self.pool2 = TopKPooling(128, ratio=0.8)
-        self.conv3 = SAGEConv(128, 128)
-        self.pool3 = TopKPooling(128, ratio=0.8)
-        self.item_embedding = torch.nn.Embedding(num_embeddings=num_teams, embedding_dim=embed_dim)
-        self.lin1 = torch.nn.Linear(4, 6)
-        self.lin2 = torch.nn.Linear(16, 6)
-        self.lin3 = torch.nn.Linear(6, target_dim)
-        self.bn1 = torch.nn.BatchNorm1d(128)
-        self.bn2 = torch.nn.BatchNorm1d(64)
-        self.act1 = torch.nn.ReLU()
-        self.act2 = torch.nn.ReLU()
-        self.out = LogSoftmax(dim=0)
+        self.embedding = torch.nn.Embedding(num_embeddings=num_teams, embedding_dim=embed_dim)
+
+        conv_layers = [GraphConv(self.embed_dim, self.conv_dims[0])]
+        for i in range(n_conv - 1):
+            conv_layers.append(GraphConv(conv_dims[i], conv_dims[i + 1]))
+        self.conv_layers = ModuleList(conv_layers)
+
+        lin_layers = []
+        lin_layers.append(torch.nn.Linear(conv_dims[n_conv - 1]*2, dense_dims[0]))
+        for i in range(n_dense - 2):
+            lin_layers.append(torch.nn.Linear(dense_dims[i], dense_dims[i + 1]))
+        lin_layers.append(torch.nn.Linear(dense_dims[n_dense - 2], target_dim))
+
+        self.lin_layers = ModuleList(lin_layers)
+
+        self.out = LogSoftmax(dim=1)
+        self.drop = Dropout(p=0.1)
+
 
     def forward(self, data, home, away):
         edge_index, edge_weight = data.edge_index, data.edge_weight
-        x = torch.tensor(list(range(data.n_teams)))
-        x = self.item_embedding(x).reshape(-1,embed_dim)
-        # x = x.squeeze(1)
+        if hasattr(self, 'num_teams'):
+            num_teams = self.num_teams
+        else:
+            num_teams = data.n_teams
+        x = torch.tensor(list(range(num_teams)))
+        x = self.embedding(x).reshape(-1, self.embed_dim)
 
-        # x = F.leaky_relu(self.conv1(x, edge_index))
-        x = self.conv1(x, edge_index, edge_weight)
-        x = F.leaky_relu(x)
+        if len(edge_weight) > 0:
+            x = self.conv_layers[0](x, edge_index, edge_weight )
+        else:
+            x = self.conv_layers[0](x, edge_index)
+        x = self.activation(x)
+        x = self.drop(x)
 
+        for i in range(self.n_conv - 1):
+            if len(edge_weight) > 0:
+                    x = self.activation(self.conv_layers[i + 1](x, data.edge_index, edge_weight))
+            else:
+                x = self.activation(self.conv_layers[i + 1](x, data.edge_index))
+            # x = self.drop(x)
 
-        data.edge_index = get_neighbour_edge_index(data)
-        if len(data.edge_index) > 0:
-            edge_weight = calculate_edge_weight(data)
-            x = F.leaky_relu(self.conv2(x, data.edge_index, edge_weight))
+        x = torch.cat([x[home], x[away]], dim=1)
+        # x = torch.sub(x[home], x[away])
 
+        for i in range(self.n_dense):
+            x = self.activation(self.lin_layers[i](x))
+            x = self.drop(x)
 
-
-
-        x = torch.cat([x[home],x[away]], dim=-1)
-
-        x = F.leaky_relu(self.lin1(x))
-        # x = F.leaky_relu(self.lin2(x))
-        x = F.leaky_relu(self.lin3(x))
-        # .squeeze(1)
         x = self.out(x)
-        # x = F.softmax(x, dim=0)
         return x.reshape(-1, target_dim)
