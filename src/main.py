@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from DataTransformer import DataTransformer
 from FlatModel import FlatModel
 from Trainer import *
