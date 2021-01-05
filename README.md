@@ -1,4 +1,5 @@
 # Predicting sports matches with neural models”
+The codebase for the thesis can be found at <https://github.com/perevale/matches_prediction.git>
 This repository provides a codebase for a master’s thesis “Predicting sports matches with neural models”.
 
 The models can be created from a ```scripts/main.py``` file. 
@@ -35,5 +36,4 @@ The instructions to the install the PyTorch Geometric after the installation of 
     pip install pytorch  
     pip install torch-scatter==latest+cpu torch-sparse==latest+cpu -f https://pytorch-geometric.com/whl/torch-1.6.0.html  
     pip install torch-geometric
-
 

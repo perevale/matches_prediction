@@ -73,7 +73,7 @@ def continuous_evaluation(data: Data, model, epochs=100, lr=0.001, lr_discount=0
         print(data.val_acc)
 
 
-def train_cont(data: Data, model: torch.nn.Module, matches: pd.Dataframe,
+def train_cont(data: Data, model: torch.nn.Module, matches,
                epochs:int = 100, lr: int = 0.0001, batch_size:int = 9, print_info: bool = False):
     """
     A function for training the provided model with the provided matches using continuous evaluation
@@ -135,7 +135,7 @@ def train_cont(data: Data, model: torch.nn.Module, matches: pd.Dataframe,
     data.train_accuracy.append(sum(running_accuracy) / (matches.shape[0] * epochs))
 
 
-def test_cont(data: Data, model: torch.nn.Module, matches: pd.Dataframe, mode: str = "val"):
+def test_cont(data: Data, model: torch.nn.Module, matches, mode: str = "val"):
     """
     A function for testing the provided model on the provided matches using continuous evaluation
     :param data: a Dataset instance associated with the model that contains the necessary data for training and the
@@ -159,7 +159,7 @@ def test_cont(data: Data, model: torch.nn.Module, matches: pd.Dataframe, mode: s
         data.val_loss.append(loss)
 
 
-def get_predictions(data: Data, model: torch.nn.Module, matches: pd.Dataframe) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def get_predictions(data: Data, model: torch.nn.Module, matches) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Compute the predictions for the provided matches using provided model
     :param data: a Dataset instance associated with the model that contains the necessary data for training and the
@@ -184,7 +184,7 @@ def get_probabilities(data, model, matches):
     return outputs, label
 
 
-def get_rps(data: Data, model: torch.nn.Module, matches: pd.Dataframe) -> float:
+def get_rps(data: Data, model: torch.nn.Module, matches) -> float:
     """
     Computation of PRS score for a provided model on provided data
     :param data: a Dataset instance associated with the model that contains the necessary data for training and the
