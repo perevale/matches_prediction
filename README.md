@@ -1,6 +1,7 @@
 # Predicting sports matches with neural models”
 The codebase for the thesis can be found at <https://github.com/perevale/matches_prediction.git>
 This repository provides a codebase for a master’s thesis “Predicting sports matches with neural models”.
+The text for the master's thesis can be found at <https://dspace.cvut.cz/handle/10467/92732>.
 
 The models can be created from a ```scripts/main.py``` file. 
 The functions available include:
