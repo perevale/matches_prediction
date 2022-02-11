@@ -47,7 +47,7 @@ packaging==20.4
 pandas @ file:///C:/ci/pandas_1602083338010/work
 Pillow @ file:///C:/ci/pillow_1603823068645/work
 plotly @ file:///tmp/build/80754af9/plotly_1607536586307/work
-protobuf==3.14.0
+protobuf==3.15.0
 py-cpuinfo==7.0.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
